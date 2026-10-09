@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MbeukImmig Pro — Plateforme</title>
+<link rel="manifest" href="./manifest.json">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<style>
+:root { --ink:#0d0d14; --paper:#f8f7f4; --accent:#c8440e; --accent2:#1a3a5c; --gold:#d4a843; --muted:#6b6873; --border:#e2e0da; --card:#fff; --radius:12px; }
+* { box-sizing:border-box; margin:0; padding:0; }
+body { font-family:'DM Sans',sans-serif; background:var(--paper); color:var(--ink); line-height:1.55; }
+header { background:var(--ink); color:#fff; padding:14px 20px; display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; }
+header h1 { font-family:'DM Serif Display',serif; font-size:1.35rem; }
+header h1 span { color:var(--gold); }
+nav a { color:rgba(255,255,255,.85); margin-left:14px; text-decoration:none; font-size:.88rem; }
+main { max-width:1100px; margin:0 auto; padding:24px 16px 64px; }
+.grid { display:grid; gap:16px; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); }
+.card { background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:20px; box-shadow:0 2px 16px rgba(0,0,0,.04); }
+.card h2 { font-size:1.05rem; margin-bottom:10px; color:var(--accent2); }
+label { display:block; font-size:.8rem; font-weight:600; margin:10px 0 4px; }
+input, select, textarea, button { font:inherit; width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:8px; }
+button { background:var(--accent2); color:#fff; border:none; cursor:pointer; font-weight:600; margin-top:10px; }
+button.secondary { background:#fff; color:var(--accent2); border:1px solid var(--border); }
+button:disabled { opacity:.6; cursor:not-allowed; }
+.msg { font-size:.85rem; margin-top:8px; color:var(--muted); }
+.msg.error { color:var(--accent); }
+.passage { border-left:3px solid var(--gold); padding:8px 12px; margin:8px 0; background:#fffdf8; font-size:.88rem; }
+.status-pill { display:inline-block; padding:4px 10px; border-radius:999px; font-size:.75rem; background:#eef3f8; }
+footer { text-align:center; font-size:.78rem; color:var(--muted); padding:24px; }
+.tabs { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px; }
+.tab { padding:8px 14px; border-radius:999px; border:1px solid var(--border); background:#fff; cursor:pointer; font-size:.85rem; }
+.tab.active { background:var(--accent2); color:#fff; border-color:var(--accent2); }
+@media (max-width:600px){ header h1{font-size:1.15rem} }
+</style>
+</head>
+<body>
+<header>
+  <h1>Mbeuk<span>Immig</span> Pro</h1>
+  <div>
+    <nav>
+      <a href="./index.html">Outils CV</a>
+      <a href="./admin.html">Admin</a>
+    </nav>
+    <span id="authStatus" class="status-pill" style="margin-left:12px">Hors session</span>
+  </div>
+</header>
+
+<main>
+  <div class="tabs" id="localeTabs">
+    <button type="button" class="tab active" data-locale="fr">FR</button>
+    <button type="button" class="tab" data-locale="en">EN</button>
+  </div>
+
+  <section class="card" id="authCard">
+    <h2>Compte</h2>
+    <p class="msg">Créez un compte pour projets, Brain AI et recherche sourcée.</p>
+    <label for="email">Email</label>
+    <input id="email" type="email" autocomplete="username">
+    <label for="password">Mot de passe</label>
+    <input id="password" type="password" autocomplete="current-password">
+    <button type="button" id="btnLogin">Se connecter / S'inscrire</button>
+    <button type="button" class="secondary" id="btnLogout" style="display:none">Déconnexion</button>
+    <p class="msg" id="authMsg"></p>
+  </section>
+
+  <div class="grid" style="margin-top:16px">
+    <section class="card">
+      <h2>Projet d'immigration</h2>
+      <label>Titre</label>
+      <input id="projTitle" placeholder="Mon projet Canada">
+      <label>Pays (ISO)</label>
+      <input id="projCountry" placeholder="CA" maxlength="2">
+      <label>Voie</label>
+      <input id="projPathway" placeholder="express_entry">
+      <button type="button" id="btnCreateProject">Créer le projet</button>
+      <ul id="projectList" class="msg"></ul>
+    </section>
+
+    <section class="card">
+      <h2 id="searchTitle">Recherche (sans IA générative)</h2>
+      <input id="searchQuery" placeholder="Ex. permis de travail">
+      <input id="searchCountry" placeholder="Pays (FR, CA)" maxlength="2">
+      <button type="button" id="btnSearch">Rechercher</button>
+      <div id="searchResults"></div>
+    </section>
+  </div>
+
+  <section class="card" style="margin-top:16px">
+    <h2 id="brainTitle">Brain AI</h2>
+    <label>Mode</label>
+    <select id="aiMode">
+      <option value="central">IA centrale MbeukImmig</option>
+      <option value="byok">Clé API personnelle (BYOK)</option>
+    </select>
+    <label>Fournisseur</label>
+    <select id="aiProvider">
+      <option value="openai">OpenAI</option>
+      <option value="anthropic">Anthropic</option>
+      <option value="google">Google Gemini</option>
+      <option value="xai">xAI Grok</option>
+      <option value="openrouter">OpenRouter</option>
+      <option value="mistral">Mistral AI</option>
+    </select>
+    <p class="msg"><a id="consoleLink" href="#" target="_blank" rel="noopener">Console fournisseur</a></p>
+    <label>Modèle</label>
+    <input id="aiModel" placeholder="gpt-4o-mini">
+    <label>Clé API (BYOK — jamais réaffichée)</label>
+    <input id="aiKey" type="password" autocomplete="off">
+    <button type="button" id="btnSaveKey">Enregistrer clé</button>
+    <button type="button" class="secondary" id="btnTestKey">Tester connexion</button>
+    <button type="button" class="secondary" id="btnRevokeKey">Révoquer clé</button>
+    <p class="msg" id="brainStatus"></p>
+    <label>Question (assistant)</label>
+    <textarea id="chatInput" rows="3"></textarea>
+    <button type="button" id="btnAsk">Envoyer</button>
+    <pre id="chatOut" class="msg" style="white-space:pre-wrap;margin-top:10px"></pre>
+  </section>
+
+  <section class="card" style="margin-top:16px">
+    <h2>Agent — admissibilité v1 (FR/CA)</h2>
+    <button type="button" id="btnEligibility">Lancer vérification déterministe</button>
+    <pre id="eligOut" class="msg"></pre>
+  </section>
+</main>
+
+<footer>
+  Information indicative — ne garantit pas l'obtention d'un visa. Données hébergées sur Supabase (UE selon configuration projet).
+</footer>
+
+<script type="module">
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.49.1';
+import { callFunction } from './js/platform/api.js';
+import { t } from './js/platform/i18n.js';
+import { PROVIDER_CONSOLE_URLS } from './js/platform/providers.js';
+
+let locale = 'fr';
+let supabase = null;
+
+async function loadConfig() {
+  try {
+    const mod = await import('./js/supabase-config.js');
+    if (mod.SUPABASE_URL && mod.SUPABASE_ANON_KEY) {
+      const { configureSupabase } = await import('./js/platform/api.js');
+      configureSupabase(mod.SUPABASE_URL, mod.SUPABASE_ANON_KEY);
+      supabase = createClient(mod.SUPABASE_URL, mod.SUPABASE_ANON_KEY);
+      return true;
+    }
+  } catch (_) {}
+  document.getElementById('authMsg').textContent = 'Configurez js/supabase-config.js (voir .env.example). Mode dégradé : CV local sur index.html.';
+  return false;
+}
+
+function refreshConsoleLink() {
+  const p = document.getElementById('aiProvider').value;
+  const a = document.getElementById('consoleLink');
+  a.href = PROVIDER_CONSOLE_URLS[p] || '#';
+}
+
+async function refreshAuth() {
+  if (!supabase) return;
+  const { data } = await supabase.auth.getSession();
+  const logged = !!data.session;
+  document.getElementById('btnLogout').style.display = logged ? 'block' : 'none';
+  document.getElementById('authStatus').textContent = logged ? data.session.user.email : t('login', locale);
+  if (logged) loadProjects();
+}
+
+async function loadProjects() {
+  const { data } = await supabase.from('immigration_projects').select('id, title, destination_country_code, status').order('created_at', { ascending: false });
+  document.getElementById('projectList').innerHTML = (data ?? []).map(p => `<li>${p.title} (${p.destination_country_code}) — ${p.status}</li>`).join('') || '<li>Aucun projet</li>';
+}
+
+document.getElementById('btnLogin').onclick = async () => {
+  if (!supabase) return;
+  const email = document.getElementById('email').value;
+  const password = document.getElementById('password').value;
+  let { error } = await supabase.auth.signInWithPassword({ email, password });
+  if (error) {
+    ({ error } = await supabase.auth.signUp({ email, password }));
+  }
+  document.getElementById('authMsg').textContent = error ? error.message : 'Session ouverte';
+  document.getElementById('authMsg').className = error ? 'msg error' : 'msg';
+  refreshAuth();
+};
+
+document.getElementById('btnLogout').onclick = async () => {
+  await supabase.auth.signOut();
+  refreshAuth();
+};
+
+document.getElementById('btnCreateProject').onclick = async () => {
+  const { error } = await supabase.from('immigration_projects').insert({
+    title: document.getElementById('projTitle').value || 'Projet',
+    destination_country_code: (document.getElementById('projCountry').value || 'CA').toUpperCase(),
+    pathway_code: document.getElementById('projPathway').value || null,
+  });
+  if (error) alert(error.message);
+  loadProjects();
+};
+
+document.getElementById('btnSearch').onclick = async () => {
+  const out = document.getElementById('searchResults');
+  out.innerHTML = '';
+  try {
+    const res = await callFunction(supabase, 'rag-search', {
+      query: document.getElementById('searchQuery').value,
+      countryCode: document.getElementById('searchCountry').value || null,
+    });
+    if (!res.passages?.length) {
+      out.innerHTML = `<p class="msg">${t('noResults', locale)}</p>`;
+      return;
+    }
+    out.innerHTML = res.passages.map(p => `<div class="passage"><strong>${p.title || ''}</strong><br>${p.excerpt?.slice(0,280)}…<br><a href="${p.url}" target="_blank" rel="noopener">${p.url}</a></div>`).join('');
+  } catch (e) {
+    out.innerHTML = `<p class="msg error">${e.message}</p>`;
+  }
+};
+
+document.getElementById('aiProvider').onchange = refreshConsoleLink;
+
+document.getElementById('btnSaveKey').onclick = async () => {
+  try {
+    await callFunction(supabase, 'byok', {
+      action: 'save',
+      providerId: document.getElementById('aiProvider').value,
+      apiKey: document.getElementById('aiKey').value,
+    });
+    document.getElementById('aiKey').value = '';
+    document.getElementById('brainStatus').textContent = 'Clé enregistrée (hint uniquement côté serveur).';
+  } catch (e) {
+    document.getElementById('brainStatus').textContent = e.message;
+  }
+};
+
+document.getElementById('btnTestKey').onclick = async () => {
+  try {
+    const r = await callFunction(supabase, 'byok', {
+      action: 'test',
+      providerId: document.getElementById('aiProvider').value,
+      modelId: document.getElementById('aiModel').value,
+    });
+    document.getElementById('brainStatus').textContent = r.message;
+  } catch (e) {
+    document.getElementById('brainStatus').textContent = e.message;
+  }
+};
+
+document.getElementById('btnRevokeKey').onclick = async () => {
+  await callFunction(supabase, 'byok', { action: 'delete', providerId: document.getElementById('aiProvider').value });
+  document.getElementById('brainStatus').textContent = 'Clé révoquée.';
+};
+
+document.getElementById('btnAsk').onclick = async () => {
+  const out = document.getElementById('chatOut');
+  try {
+    await callFunction(supabase, 'byok', {
+      action: 'set_mode',
+      mode: document.getElementById('aiMode').value,
+      defaultProviderId: document.getElementById('aiProvider').value,
+      defaultModelId: document.getElementById('aiModel').value,
+    });
+    const res = await callFunction(supabase, 'ai-chat', {
+      messages: [{ role: 'user', content: document.getElementById('chatInput').value }],
+      providerId: document.getElementById('aiProvider').value,
+      modelId: document.getElementById('aiModel').value,
+    });
+    out.textContent = res.content + `\n\n[${res.billingMode} · ${res.provider}]`;
+  } catch (e) {
+    out.textContent = t('genDisabled', locale) + ' — ' + e.message;
+  }
+};
+
+document.getElementById('btnEligibility').onclick = async () => {
+  try {
+    const res = await callFunction(supabase, 'agent', {
+      toolName: 'run_eligibility',
+      input: {
+        countryCode: document.getElementById('projCountry').value || 'CA',
+        pathwayCode: document.getElementById('projPathway').value || 'express_entry',
+        profile: { age: 28, language_level: 'B2' },
+      },
+    });
+    document.getElementById('eligOut').textContent = JSON.stringify(res.result, null, 2);
+  } catch (e) {
+    document.getElementById('eligOut').textContent = e.message;
+  }
+};
+
+document.querySelectorAll('#localeTabs .tab').forEach(btn => {
+  btn.onclick = () => {
+    document.querySelectorAll('#localeTabs .tab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    locale = btn.dataset.locale;
+    document.getElementById('searchTitle').textContent = t('search', locale);
+    document.getElementById('brainTitle').textContent = t('brainTitle', locale);
+  };
+});
+
+await loadConfig();
+refreshConsoleLink();
+if (supabase) {
+  supabase.auth.onAuthStateChange(refreshAuth);
+  refreshAuth();
+}
+</script>
+</body>
+</html>

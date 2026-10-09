@@ -1,0 +1,21 @@
+project_id = "mbeukimmig-local"
+
+[api]
+enabled = true
+port = 54321
+
+[db]
+port = 54322
+major_version = 15
+
+[studio]
+enabled = true
+port = 54323
+
+[auth]
+enabled = true
+site_url = "http://127.0.0.1:5500"
+additional_redirect_urls = ["http://localhost:5500/platform.html"]
+
+[functions]
+verify_jwt = true

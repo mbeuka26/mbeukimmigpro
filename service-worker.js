@@ -4,9 +4,14 @@ const CACHE_NAME = 'mbeukimmig-v3.0';
 const APP_SHELL = [
   './',
   './index.html',
+  './platform.html',
+  './admin.html',
   './access.html',
   './manifest.json',
   './js/eligibility-rules-v1.js',
+  './js/platform/api.js',
+  './js/platform/i18n.js',
+  './js/platform/providers.js',
 ];
 
 self.addEventListener('install', (event) => {
