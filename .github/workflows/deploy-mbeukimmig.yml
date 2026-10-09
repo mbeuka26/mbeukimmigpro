@@ -106,9 +106,7 @@ jobs:
           (github.event_name == 'workflow_dispatch' && github.event.inputs.deploy_supabase_db == 'true') ||
           (github.event_name == 'push' && env.SUPABASE_DB_PUSH_ON_MAIN == 'true') ||
           (github.event_name == 'push' && contains(github.event.head_commit.message, '[db-push]'))
-        run: |
-          supabase link --project-ref "$SUPABASE_PROJECT_REF" --yes
-          supabase db push --linked
+        run: bash scripts/ci/push-supabase-db.sh
       - name: Edge Functions → Supabase
         if: github.event_name == 'push' || github.event.inputs.deploy_supabase_functions == 'true'
         run: bash scripts/ci/deploy-supabase-functions.sh
