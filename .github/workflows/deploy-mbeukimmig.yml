@@ -86,6 +86,7 @@ jobs:
       CENTRAL_MISTRAL_API_KEY: ${{ secrets.CENTRAL_MISTRAL_API_KEY }}
       CRAWLER_CRON_SECRET: ${{ secrets.CRAWLER_CRON_SECRET }}
       ADMIN_SECRET: ${{ secrets.ADMIN_SECRET }}
+      SUPABASE_DB_PUSH_ON_MAIN: ${{ vars.SUPABASE_DB_PUSH_ON_MAIN || secrets.SUPABASE_DB_PUSH_ON_MAIN }}
     steps:
       - uses: actions/checkout@v4
       - uses: supabase/setup-cli@v1
@@ -103,7 +104,7 @@ jobs:
       - name: Migrations → Supabase (db push)
         if: |
           (github.event_name == 'workflow_dispatch' && github.event.inputs.deploy_supabase_db == 'true') ||
-          (github.event_name == 'push' && (vars.SUPABASE_DB_PUSH_ON_MAIN == 'true' || secrets.SUPABASE_DB_PUSH_ON_MAIN == 'true'))
+          (github.event_name == 'push' && env.SUPABASE_DB_PUSH_ON_MAIN == 'true')
         run: |
           supabase link --project-ref "$SUPABASE_PROJECT_REF" --yes
           supabase db push --linked
