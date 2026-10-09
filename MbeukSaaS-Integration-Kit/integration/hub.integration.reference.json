@@ -1,0 +1,87 @@
+{
+  "schemaVersion": "1.0",
+  "saas": {
+    "name": "MbeukAgri",
+    "slug": "mbeukagri",
+    "ownerType": "platform",
+    "description": "ERP Agriculture/Élevage — premier SaaS de référence de la plateforme Mbeuk Hub"
+  },
+  "integration": {
+    "sdkPackage": "mbeuk-hub-sdk",
+    "sdkVersion": "2.0.0",
+    "identityAuthority": "mbeuk_hub",
+    "edgeFunctionsPrefix": "hub-"
+  },
+  "publicConfig": {
+    "note": "Valeurs réelles via variables d'environnement — jamais de secrets dans ce fichier.",
+    "environmentVar": "MBEUK_ENVIRONMENT",
+    "productIdVar": "MBEUK_PRODUCT_ID",
+    "applicationIdVar": "MBEUK_APPLICATION_ID",
+    "hubUrlVar": "MBEUK_HUB_URL",
+    "frontendSupabaseUrlVar": "VITE_SUPABASE_URL",
+    "frontendSupabaseAnonKeyVar": "VITE_SUPABASE_ANON_KEY"
+  },
+  "serverSecrets": {
+    "note": "Secrets Edge Functions Supabase uniquement — ne pas exposer au frontend.",
+    "required": [
+      "MBEUK_HUB_URL",
+      "MBEUK_HUB_API_KEY",
+      "MBEUK_PRODUCT_ID",
+      "MBEUK_AUTH_BRIDGE_SECRET",
+      "MBEUK_SERVICE_ROLE_KEY"
+    ],
+    "recommended": [
+      "MBEUK_APPLICATION_ID",
+      "MBEUK_ENVIRONMENT"
+    ]
+  },
+  "capabilities": {
+    "auth": true,
+    "checkout": true,
+    "licensing": true,
+    "entitlements": true,
+    "trial": true,
+    "deviceBinding": true,
+    "affiliate": true,
+    "diagnostics": true
+  },
+  "edgeFunctions": {
+    "auth": [
+      "hub-auth-login",
+      "hub-auth-register",
+      "hub-auth-logout",
+      "hub-auth-forgot-password",
+      "hub-auth-refresh"
+    ],
+    "commerce": [
+      "hub-checkout",
+      "validate-trial",
+      "hub-sync-license",
+      "hub-license-status"
+    ],
+    "profile": ["hub-me"],
+    "diagnostics": ["hub-diagnostics"]
+  },
+  "frontendModules": [
+    "src/js/central-saas/auth-service.js",
+    "src/js/central-saas/central-auth-client.js",
+    "src/js/auth-main.js"
+  ],
+  "migrations": {
+    "saasSupabase": [
+      "20260101000005_hub_integration.sql",
+      "20260101000006_hub_identity_clarification.sql",
+      "20260101000007_licenses_access_type_compat.sql"
+    ],
+    "hubCentralSupabase": [
+      "MbeukAgri/supabase/migrations/HUB_CENTRAL_licenses_access_type.sql"
+    ]
+  },
+  "flows": {
+    "register": "Frontend → hub-auth-register → Hub auth.register → profil SaaS → sync entitlement",
+    "login": "Frontend → hub-auth-login → Hub auth.login → session Hub → entitlement (séparé)",
+    "checkout": "Frontend → hub-checkout → Hub checkout.create → Chariow → webhook Hub → licence",
+    "postPayment": "hub-sync-license / hub-license-status → cache subscriptions local",
+    "trial": "validate-trial → Hub licenses.startTrial → sync subscriptions"
+  }
+}

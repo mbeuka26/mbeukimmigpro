@@ -1,0 +1,86 @@
+{
+  "schemaVersion": "1.1",
+  "saas": {
+    "name": "${SAAS_NAME}",
+    "slug": "${SAAS_SLUG}",
+    "ownerType": "developer",
+    "description": "${SAAS_DESCRIPTION}"
+  },
+  "integration": {
+    "sdkPackage": "mbeuk-hub-sdk",
+    "sdkVersion": "2.0.0",
+    "integrationKitVersion": "1.8.0",
+    "contractVersion": "v1",
+    "identityAuthority": "mbeuk_hub",
+    "edgeFunctionsPrefix": "hub-"
+  },
+  "publicConfig": {
+    "note": "Valeurs via variables d'environnement — jamais de secrets dans ce fichier.",
+    "environmentVar": "MBEUK_ENVIRONMENT",
+    "productIdVar": "MBEUK_PRODUCT_ID",
+    "applicationIdVar": "MBEUK_APPLICATION_ID",
+    "hubUrlVar": "MBEUK_HUB_URL",
+    "frontendSupabaseUrlVar": "VITE_SUPABASE_URL",
+    "frontendSupabaseAnonKeyVar": "VITE_SUPABASE_ANON_KEY"
+  },
+  "serverSecrets": {
+    "note": "Secrets Edge Functions / backend uniquement.",
+    "required": [
+      "MBEUK_HUB_URL",
+      "MBEUK_HUB_API_KEY",
+      "MBEUK_PRODUCT_ID",
+      "MBEUK_AUTH_BRIDGE_SECRET",
+      "MBEUK_SERVICE_ROLE_KEY"
+    ],
+    "recommended": [
+      "MBEUK_APPLICATION_ID",
+      "MBEUK_ENVIRONMENT"
+    ]
+  },
+  "capabilities": {
+    "auth": true,
+    "checkout": true,
+    "licensing": true,
+    "entitlements": true,
+    "trial": true,
+    "deviceBinding": true,
+    "affiliate": true,
+    "diagnostics": true,
+    "universalGate": true,
+    "statusBadges": true
+  },
+  "edgeFunctions": {
+    "auth": [
+      "hub-auth-login",
+      "hub-auth-register",
+      "hub-auth-logout",
+      "hub-auth-forgot-password",
+      "hub-auth-refresh"
+    ],
+    "commerce": [
+      "hub-checkout",
+      "hub-validate-promo",
+      "validate-trial",
+      "hub-sync-license",
+      "hub-license-status"
+    ],
+    "profile": ["hub-me"],
+    "diagnostics": ["hub-diagnostics"]
+  },
+  "flows": {
+    "register": "Frontend → hub-auth-register → Hub auth.register → profil SaaS → sync entitlement",
+    "login": "Frontend → hub-auth-login → Hub auth.login (ACCOUNT_NOT_FOUND | WRONG_PASSWORD) → session Hub → entitlement (séparé)",
+    "marketplaceInstall": "Hub Marketplace Installer (?ref=) → SaaS auth → compte → checkout (promo optionnel)",
+    "checkout": "Frontend → hub-validate-promo (si code) → hub-checkout (promo_code | link_ref) → Chariow → webhook Hub → licence",
+    "postPayment": "poll hub-sync-license / hub-license-status jusqu'à entitlement actif (redirect ≠ preuve)",
+    "trial": "validate-trial → Hub licenses.startTrial → sync subscriptions"
+  },
+  "frontendBarrier": {
+    "module": "templates/frontend/universal-barrier/mbeuk-hub-gate.js",
+    "protectedRoot": "#app",
+    "headerTarget": "#hub-user-status",
+    "authMode": "existing",
+    "bootModule": "templates/frontend/universal-barrier/boot.js",
+    "note": "Utiliser authMode=universal seulement si aucune page auth n'existe."
+  }
+}

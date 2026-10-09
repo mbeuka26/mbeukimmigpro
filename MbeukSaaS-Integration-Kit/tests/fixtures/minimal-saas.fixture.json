@@ -1,0 +1,23 @@
+{
+  "schemaVersion": "1.0",
+  "saas": {
+    "name": "MinimalFixture",
+    "slug": "minimal-fixture",
+    "ownerType": "platform",
+    "description": "SaaS fictif pour tests de généricité du kit — domaine neutre (gestion de tâches)"
+  },
+  "integration": {
+    "sdkPackage": "mbeuk-hub-sdk",
+    "sdkVersion": "2.0.0",
+    "integrationKitVersion": "1.8.0"
+  },
+  "capabilities": {
+    "auth": true,
+    "checkout": true,
+    "licensing": true,
+    "entitlements": true,
+    "trial": false,
+    "affiliate": false
+  },
+  "note": "Fixture — aucun ID Hub réel. Utilisé par tests/contract uniquement."
+}

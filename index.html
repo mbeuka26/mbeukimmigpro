@@ -498,6 +498,7 @@ body {
 </head>
 <body>
 
+<div id="app">
 <!-- BARRE HORS LIGNE -->
 <div class="offline-bar" id="offlineBar">
   ⚡ Mode Hors Ligne — Toutes les fonctionnalités locales sont actives. La connexion à Claude nécessite Internet.
@@ -511,6 +512,7 @@ body {
       Mbeuk<span>Immig</span> Pro
       <div class="logo-sub">Guide · Procédures · Candidature</div>
     </div>
+    <div id="hub-user-status" aria-live="polite" class="header-version"></div>
     <a href="./platform.html" class="header-version" style="text-decoration:none;color:inherit">Plateforme IA</a>
     <span class="header-version" id="connectionStatus">🟢 En ligne</span>
   </div>
@@ -1036,6 +1038,7 @@ Exemple :
     </div>
   </div>
 </footer>
+</div>
 
 <!-- TOAST -->
 <div class="toast" id="toast">
@@ -1485,6 +1488,26 @@ document.addEventListener('DOMContentLoaded', () => {
       .then(reg => console.log('[SW] Actif :', reg.scope))
       .catch(err => console.warn('[SW] Erreur :', err));
   }
+
+  // ── Hub Central Mbeuk (barrière entitlement) ──
+  import('./src/mbeuk-gate/boot.js').then(async ({ bootMbeukHubGate }) => {
+    import('./js/hub/hub-affiliate.js');
+    try {
+      const cfg = await import('./js/supabase-config.js');
+      if (cfg.SUPABASE_URL && cfg.SUPABASE_ANON_KEY) {
+        await bootMbeukHubGate({
+          supabaseUrl: cfg.SUPABASE_URL,
+          anonKey: cfg.SUPABASE_ANON_KEY,
+          productName: 'MbeukImmig Pro',
+          productDescription: 'Outils CV/lettre et orientation immigration.',
+          sector: 'education',
+          authMode: 'existing',
+          skipLiveHub: true,
+          silentHealth: true,
+        });
+      }
+    } catch (_) { /* config Hub absente — accès local CV */ }
+  });
 
   // ── Sécurité : blocage clic droit ──
   document.addEventListener('contextmenu', function(e) { e.preventDefault(); });

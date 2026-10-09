@@ -6,6 +6,7 @@
 <title>MbeukImmig Pro — Plateforme</title>
 <link rel="manifest" href="./manifest.json">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./src/mbeuk-gate/mbeuk-hub-gate.css">
 <style>
 :root { --ink:#0d0d14; --paper:#f8f7f4; --accent:#c8440e; --accent2:#1a3a5c; --gold:#d4a843; --muted:#6b6873; --border:#e2e0da; --card:#fff; --radius:12px; }
 * { box-sizing:border-box; margin:0; padding:0; }
@@ -42,10 +43,11 @@ footer { text-align:center; font-size:.78rem; color:var(--muted); padding:24px; 
       <a href="./index.html">Outils CV</a>
       <a href="./admin.html">Admin</a>
     </nav>
-    <span id="authStatus" class="status-pill" style="margin-left:12px">Hors session</span>
+    <div id="hub-user-status" aria-live="polite" class="status-pill" style="margin-left:12px"></div>
   </div>
 </header>
 
+<div id="app">
 <main>
   <div class="tabs" id="localeTabs">
     <button type="button" class="tab active" data-locale="fr">FR</button>
@@ -53,14 +55,31 @@ footer { text-align:center; font-size:.78rem; color:var(--muted); padding:24px; 
   </div>
 
   <section class="card" id="authCard">
-    <h2>Compte</h2>
-    <p class="msg">Créez un compte pour projets, Brain AI et recherche sourcée.</p>
-    <label for="email">Email</label>
-    <input id="email" type="email" autocomplete="username">
-    <label for="password">Mot de passe</label>
-    <input id="password" type="password" autocomplete="current-password">
-    <button type="button" id="btnLogin">Se connecter / S'inscrire</button>
-    <button type="button" class="secondary" id="btnLogout" style="display:none">Déconnexion</button>
+    <h2>Compte Hub</h2>
+    <p class="msg">Identité et licence gérées par le Hub Central Mbeuk. Session ≠ entitlement PRO.</p>
+    <form id="login-form">
+      <label for="email">Email</label>
+      <input id="email" name="email" type="email" autocomplete="username" required>
+      <label for="password">Mot de passe</label>
+      <input id="password" name="password" type="password" autocomplete="current-password" required>
+      <button type="submit">Se connecter</button>
+    </form>
+    <form id="register-form" style="margin-top:16px">
+      <label for="regEmail">Email (inscription)</label>
+      <input id="regEmail" name="email" type="email" autocomplete="email" required>
+      <label for="regPassword">Mot de passe</label>
+      <input id="regPassword" name="password" type="password" autocomplete="new-password" required>
+      <label for="regName">Nom affiché</label>
+      <input id="regName" name="display_name" type="text" autocomplete="name">
+      <button type="submit" class="secondary">Créer un compte</button>
+    </form>
+    <label for="promo-code">Code promo (optionnel)</label>
+    <input id="promo-code" name="promo_code" type="text" autocomplete="off">
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
+      <button type="button" data-mbeuk-checkout>Acheter une licence</button>
+      <button type="button" class="secondary" data-mbeuk-trial>Essai gratuit</button>
+      <button type="button" class="secondary" data-mbeuk-logout>Déconnexion</button>
+    </div>
     <p class="msg" id="authMsg"></p>
   </section>
 
@@ -127,19 +146,30 @@ footer { text-align:center; font-size:.78rem; color:var(--muted); padding:24px; 
 <footer>
   Information indicative — ne garantit pas l'obtention d'un visa. Données hébergées sur Supabase (UE selon configuration projet).
 </footer>
+</div>
 
 <script type="module">
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.49.1';
 import { callFunction } from './js/platform/api.js';
 import { t } from './js/platform/i18n.js';
 import { PROVIDER_CONSOLE_URLS } from './js/platform/providers.js';
+import { bootMbeukHubGate } from './src/mbeuk-gate/boot.js';
+import './js/hub/hub-affiliate.js';
 
 let locale = 'fr';
 let supabase = null;
+let configMod = null;
+
+function authFeedback(payload) {
+  const el = document.getElementById('authMsg');
+  el.textContent = payload.text || '';
+  el.className = payload.type === 'error' ? 'msg error' : 'msg';
+}
 
 async function loadConfig() {
   try {
     const mod = await import('./js/supabase-config.js');
+    configMod = mod;
     if (mod.SUPABASE_URL && mod.SUPABASE_ANON_KEY) {
       const { configureSupabase } = await import('./js/platform/api.js');
       configureSupabase(mod.SUPABASE_URL, mod.SUPABASE_ANON_KEY);
@@ -160,34 +190,13 @@ function refreshConsoleLink() {
 async function refreshAuth() {
   if (!supabase) return;
   const { data } = await supabase.auth.getSession();
-  const logged = !!data.session;
-  document.getElementById('btnLogout').style.display = logged ? 'block' : 'none';
-  document.getElementById('authStatus').textContent = logged ? data.session.user.email : t('login', locale);
-  if (logged) loadProjects();
+  if (data.session) loadProjects();
 }
 
 async function loadProjects() {
   const { data } = await supabase.from('immigration_projects').select('id, title, destination_country_code, status').order('created_at', { ascending: false });
   document.getElementById('projectList').innerHTML = (data ?? []).map(p => `<li>${p.title} (${p.destination_country_code}) — ${p.status}</li>`).join('') || '<li>Aucun projet</li>';
 }
-
-document.getElementById('btnLogin').onclick = async () => {
-  if (!supabase) return;
-  const email = document.getElementById('email').value;
-  const password = document.getElementById('password').value;
-  let { error } = await supabase.auth.signInWithPassword({ email, password });
-  if (error) {
-    ({ error } = await supabase.auth.signUp({ email, password }));
-  }
-  document.getElementById('authMsg').textContent = error ? error.message : 'Session ouverte';
-  document.getElementById('authMsg').className = error ? 'msg error' : 'msg';
-  refreshAuth();
-};
-
-document.getElementById('btnLogout').onclick = async () => {
-  await supabase.auth.signOut();
-  refreshAuth();
-};
 
 document.getElementById('btnCreateProject').onclick = async () => {
   const { error } = await supabase.from('immigration_projects').insert({
@@ -299,7 +308,17 @@ document.querySelectorAll('#localeTabs .tab').forEach(btn => {
 
 await loadConfig();
 refreshConsoleLink();
-if (supabase) {
+if (supabase && configMod) {
+  await bootMbeukHubGate({
+    supabaseUrl: configMod.SUPABASE_URL,
+    anonKey: configMod.SUPABASE_ANON_KEY,
+    productName: 'MbeukImmig Pro',
+    productDescription: 'Orientation immigration, procédures officielles, Brain AI et candidature.',
+    sector: 'education',
+    authMode: 'existing',
+    skipLiveHub: true,
+    feedback: authFeedback,
+  });
   supabase.auth.onAuthStateChange(refreshAuth);
   refreshAuth();
 }

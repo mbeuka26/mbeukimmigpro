@@ -1,0 +1,26 @@
+{
+  "name": "${SAAS_NAME}",
+  "short_name": "${SAAS_SHORT_NAME}",
+  "description": "Application connectée au Hub Central Mbeuk",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0f172a",
+  "theme_color": "#075985",
+  "lang": "fr",
+  "icons": [
+    {
+      "src": "/icons/mbeuk-icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/mbeuk-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

@@ -1,0 +1,273 @@
+:root {
+  --mbeuk-gate-navy: #071526;
+  --mbeuk-gate-navy-card: #0c1e33;
+  --mbeuk-gate-primary: #1d4e74;
+  --mbeuk-gate-primary-hover: #256089;
+  --mbeuk-gate-success: #15803d;
+  --mbeuk-gate-error: #f87171;
+  --mbeuk-gate-surface: #0c1e33;
+  --mbeuk-gate-text: #e8eef4;
+  --mbeuk-gate-muted: #9aacbb;
+  --mbeuk-gate-steel: #7f93a6;
+}
+
+.mbeuk-gate {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483000;
+  display: grid;
+  place-items: center;
+  padding: 1.25rem;
+  color: var(--mbeuk-gate-text);
+  background: var(--mbeuk-gate-navy);
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+  overflow: hidden;
+}
+
+.mbeuk-gate__scene {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.42;
+}
+
+.mbeuk-gate__mech {
+  width: 100%;
+  height: 100%;
+}
+
+.mbeuk-gate__grid path {
+  stroke: #123047;
+  stroke-width: 1;
+}
+
+.mbeuk-gate__beam path,
+.mbeuk-gate__beam circle,
+.mbeuk-gate__piston rect,
+.mbeuk-gate__gear circle,
+.mbeuk-gate__gear path,
+.mbeuk-gate__fluid path {
+  stroke: var(--mbeuk-gate-steel);
+  stroke-width: 2.2;
+}
+
+.mbeuk-gate__beam circle,
+.mbeuk-gate__piston rect {
+  fill: #143049;
+}
+
+.mbeuk-gate__gear circle:first-child {
+  fill: #10283d;
+}
+
+.mbeuk-gate__gear circle:nth-child(2) {
+  fill: #071526;
+}
+
+.mbeuk-gate__drop {
+  fill: #6f8ea3;
+  animation: mbeuk-drop 3.6s ease-in-out infinite;
+}
+
+.mbeuk-gate__drop--b {
+  animation-delay: -1.4s;
+}
+
+.mbeuk-gate__gear--lg {
+  transform-origin: 168px 168px;
+  animation: mbeuk-spin 28s linear infinite;
+}
+
+.mbeuk-gate__gear--sm {
+  transform-origin: 248px 118px;
+  animation: mbeuk-spin-rev 18s linear infinite;
+}
+
+.mbeuk-gate__rod {
+  animation: mbeuk-piston 2.8s ease-in-out infinite;
+}
+
+.mbeuk-gate__card {
+  position: relative;
+  width: min(100%, 30rem);
+  padding: clamp(1.5rem, 4vw, 2.5rem);
+  border: 1px solid #1c3a52;
+  border-radius: 1rem;
+  background: var(--mbeuk-gate-navy-card);
+  box-shadow: 0 24px 48px rgb(0 0 0 / 35%);
+  animation: mbeuk-gate-enter 280ms ease-out both;
+}
+
+.mbeuk-gate__eyebrow {
+  margin: 0 0 0.5rem;
+  color: #8fb4cc;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.mbeuk-gate__card h1 {
+  margin: 0;
+  font-size: clamp(1.55rem, 5vw, 2.05rem);
+  line-height: 1.15;
+  color: #f4f8fb;
+}
+
+.mbeuk-gate__intro {
+  margin: 0.75rem 0 1.5rem;
+  color: var(--mbeuk-gate-muted);
+}
+
+.mbeuk-gate__alert {
+  color: #f8fafc;
+  font-weight: 650;
+}
+
+.mbeuk-gate__note {
+  margin: 0.75rem 0 0;
+  color: var(--mbeuk-gate-muted);
+  font-size: 0.8rem;
+}
+
+.mbeuk-gate__form,
+.mbeuk-gate__field {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.mbeuk-gate__field {
+  gap: 0.35rem;
+  font-size: 0.875rem;
+  font-weight: 650;
+}
+
+.mbeuk-gate__field input {
+  min-height: 2.9rem;
+  padding: 0 0.9rem;
+  border: 1px solid #2a4a61;
+  border-radius: 0.65rem;
+  background: #071526;
+  color: var(--mbeuk-gate-text);
+  font: inherit;
+}
+
+.mbeuk-gate__field input:focus {
+  border-color: #3d6f8f;
+  outline: 2px solid #1d4e74;
+}
+
+.mbeuk-gate__primary,
+.mbeuk-gate__cta.mbeuk-gate__primary {
+  min-height: 3rem;
+  margin-top: 0.35rem;
+  border: 0;
+  border-radius: 0.65rem;
+  background: var(--mbeuk-gate-primary);
+  color: #f8fafc;
+  font: inherit;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.mbeuk-gate__primary:hover {
+  background: var(--mbeuk-gate-primary-hover);
+}
+
+.mbeuk-gate__secondary {
+  width: 100%;
+  margin-top: 0.85rem;
+  padding: 0.7rem 0.4rem;
+  border: 1px solid #2a4a61;
+  border-radius: 0.65rem;
+  background: transparent;
+  color: #d5e4ee;
+  font: inherit;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.mbeuk-gate__feedback {
+  min-height: 1.25rem;
+  margin: 1rem 0 0;
+  font-size: 0.875rem;
+}
+
+.mbeuk-gate__feedback--error {
+  color: var(--mbeuk-gate-error);
+}
+
+.mbeuk-gate__feedback--success {
+  color: #4ade80;
+}
+
+.mbeuk-gate__user {
+  font-weight: 650;
+}
+
+.mbeuk-gate__badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.75rem;
+  margin-inline-start: 0.5rem;
+  padding: 0.2rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 750;
+}
+
+.mbeuk-gate__badge--trial {
+  color: #fef9c3;
+  background: #3f3a12;
+}
+
+.mbeuk-gate__badge--standard {
+  color: #dcfce7;
+  background: #14532d;
+}
+
+@keyframes mbeuk-gate-enter {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+
+@keyframes mbeuk-spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes mbeuk-spin-rev {
+  to { transform: rotate(-360deg); }
+}
+
+@keyframes mbeuk-piston {
+  50% { transform: translateY(14px); }
+}
+
+@keyframes mbeuk-drop {
+  0%, 100% { transform: translateY(0); opacity: 0.35; }
+  50% { transform: translateY(16px); opacity: 0.9; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mbeuk-gate__card,
+  .mbeuk-gate__gear--lg,
+  .mbeuk-gate__gear--sm,
+  .mbeuk-gate__rod,
+  .mbeuk-gate__drop {
+    animation: none;
+  }
+}
+
+.mbeuk-gate--agri,
+.mbeuk-gate--commerce,
+.mbeuk-gate--education,
+.mbeuk-gate--sante,
+.mbeuk-gate--health,
+.mbeuk-gate--mecanique,
+.mbeuk-gate--mechanical,
+.mbeuk-gate--generic {
+  background: var(--mbeuk-gate-navy);
+}

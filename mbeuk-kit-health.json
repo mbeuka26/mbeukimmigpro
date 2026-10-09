@@ -1,0 +1,27 @@
+{
+  "saas_root": "/workspace",
+  "integration_kit_version": "1.8.0",
+  "pwa": {
+    "present": true,
+    "plugin": false,
+    "manifest": "manifest.json",
+    "serviceWorker": null
+  },
+  "ok": false,
+  "message": null,
+  "issues": [
+    {
+      "id": "HUB_URL_MISSING",
+      "message": "Clé URL frontend manquante (VITE_SUPABASE_URL ou NEXT_PUBLIC_SUPABASE_URL)"
+    },
+    {
+      "id": "SW_MISSING",
+      "message": "Service Worker manquant (mbeuk-sw.js / sw.js)"
+    },
+    {
+      "id": "ICONS_MISSING",
+      "message": "Icônes PWA 192×192 / 512×512 manquantes"
+    }
+  ],
+  "success_message": "OK - Le kit et la PWA installable ont été bien connectés et vérifiés sans faille"
+}

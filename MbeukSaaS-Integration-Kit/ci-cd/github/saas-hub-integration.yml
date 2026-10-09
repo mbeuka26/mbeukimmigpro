@@ -1,0 +1,47 @@
+name: SaaS Hub Integration
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  hub-integration:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint --if-present
+
+      - name: Typecheck
+        run: npm run typecheck --if-present
+
+      - name: Test
+        run: npm test --if-present
+
+      - name: Build
+        run: npm run build --if-present
+
+      - name: Hub integration validate
+        run: |
+          if [ -f hub.integration.json ]; then
+            node ../NATEIVA-SaaS-Integration-Kit/scripts/validate/validate.mjs .
+          else
+            echo "⚠️ hub.integration.json absent — skip hub validate"
+          fi
+
+      - name: Secret scan dist
+        run: |
+          if [ -d dist ]; then
+            ! grep -rE 'mbs_[a-zA-Z0-9]{20,}' dist/ || (echo "❌ Hub API key in dist" && exit 1)
+          fi

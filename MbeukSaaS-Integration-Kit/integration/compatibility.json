@@ -1,0 +1,58 @@
+{
+  "integrationKitVersion": "1.8.0",
+  "sdkVersion": "2.0.0",
+  "hubContractVersion": "v1",
+  "supportedFrameworks": [
+    "vite",
+    "nextjs",
+    "react-spa",
+    "vue",
+    "angular",
+    "pwa",
+    "node-backend",
+    "unknown"
+  ],
+  "supportedAuthBackends": [
+    "supabase-edge-functions",
+    "node-express",
+    "next-api-routes",
+    "unknown"
+  ],
+  "supportedDatabases": [
+    "supabase-postgresql",
+    "postgresql",
+    "unknown"
+  ],
+  "supportedDeployments": [
+    "vercel",
+    "supabase",
+    "railway",
+    "vps",
+    "unknown"
+  ],
+  "referenceImplementation": {
+    "name": "MbeukAgri",
+    "role": "validation-only",
+    "note": "Référence pour tests — ne pas hardcoder ses IDs dans le kit"
+  },
+  "frontendBarrier": {
+    "moduleFormat": "browser-esm",
+    "supportedFrameworks": [
+      "vite",
+      "nextjs-client",
+      "react-spa",
+      "vue",
+      "angular",
+      "pwa",
+      "vanilla"
+    ],
+    "requires": [
+      "fetch",
+      "Web Crypto",
+      "EventTarget"
+    ],
+    "pwaAutoInstall": true,
+    "healthCheck": true
+  },
+  "breakingChanges": []
+}

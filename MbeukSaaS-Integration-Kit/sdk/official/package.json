@@ -1,0 +1,49 @@
+{
+  "name": "mbeuk-hub-sdk",
+  "version": "2.0.0",
+  "description": "SDK JavaScript/TypeScript officiel pour le Hub central MbeukTechnologies — auth clients, licences, produits, influenceurs, checkout Chariow.",
+  "license": "UNLICENSED",
+  "author": "MbeukTechnologies",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "CHANGELOG.md",
+    "docs"
+  ],
+  "scripts": {
+    "build": "tsup src/index.ts --format esm,cjs --dts --clean",
+    "dev": "tsup src/index.ts --format esm,cjs --dts --watch",
+    "typecheck": "tsc --noEmit",
+    "test": "tsx --test src/**/*.test.ts",
+    "pack:tgz": "npm run build && npm pack"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "sideEffects": false,
+  "keywords": [
+    "mbeuk",
+    "mbeukstore",
+    "hub",
+    "license",
+    "saas",
+    "sdk"
+  ],
+  "devDependencies": {
+    "@types/node": "^20",
+    "tsup": "^8.5.0",
+    "tsx": "^4.20.5",
+    "typescript": "^5"
+  }
+}

@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Guide A→Z — Connecter un SaaS au Hub Central Mbeuk</title>
+  <style>
+    :root { --navy:#003366; --ink:#0a1628; --muted:#5a6b7d; --bg:#f3f6fa; --card:#fff; --ok:#059669; --warn:#ea580c; }
+    * { box-sizing: border-box; }
+    body { margin:0; font-family: "Segoe UI", system-ui, sans-serif; color:var(--ink); background:var(--bg); line-height:1.55; }
+    header { background:linear-gradient(135deg,#0a1628,#003366); color:#fff; padding:2.5rem 1.25rem; }
+    header h1 { margin:0; font-size:clamp(1.5rem,4vw,2.2rem); }
+    header p { margin:.75rem 0 0; opacity:.9; max-width:46rem; }
+    main { max-width:900px; margin:0 auto; padding:1.5rem 1.25rem 3rem; }
+    section { background:var(--card); border:1px solid #d8e0ea; border-radius:18px; padding:1.25rem 1.35rem; margin:1rem 0; box-shadow:0 8px 24px rgba(10,22,40,.05); }
+    h2 { margin:0 0 .75rem; color:var(--navy); font-size:1.15rem; }
+    h3 { margin:1rem 0 .4rem; font-size:1rem; }
+    ol, ul { padding-left:1.2rem; }
+    li { margin:.4rem 0; }
+    code, pre { font-family: ui-monospace, Consolas, monospace; font-size:.85rem; }
+    code { background:#eef3f8; padding:.1rem .35rem; border-radius:4px; }
+    pre { background:#0a1628; color:#e8eef5; padding:1rem; border-radius:12px; overflow:auto; }
+    .tip { background:#ecfdf3; border-left:4px solid var(--ok); padding:.75rem 1rem; border-radius:8px; margin:1rem 0; }
+    .warn { background:#fff7ed; border-left:4px solid var(--warn); padding:.75rem 1rem; border-radius:8px; margin:1rem 0; }
+    a { color:var(--navy); }
+    .step { display:inline-flex; align-items:center; justify-content:center; min-width:1.6rem; height:1.6rem; padding:0 .35rem; border-radius:999px; background:var(--navy); color:#fff; font-size:.75rem; font-weight:700; margin-right:.4rem; }
+    table { width:100%; border-collapse:collapse; font-size:.9rem; }
+    th, td { border:1px solid #d8e0ea; padding:.5rem .6rem; text-align:left; vertical-align:top; }
+    th { background:#eef3f8; }
+    footer { text-align:center; color:var(--muted); font-size:.8rem; padding:2rem 1rem; }
+  </style>
+</head>
+<body>
+  <header>
+    <p style="margin:0;font-size:.75rem;letter-spacing:.16em;text-transform:uppercase;opacity:.8">Mbeuk · Developer Portal · Kit v1.8.0</p>
+    <h1>Guide d’installation A → Z</h1>
+    <p>Connecter votre application au <strong>Hub Central</strong> : compte développeur, clé API, kit <code>MbeukSaaS-Integration-Kit</code>, auth, licences, paiements — de façon simple et sécurisée.</p>
+  </header>
+  <main>
+    <section>
+      <h2>Sommaire</h2>
+      <ol>
+        <li><a href="#principe">Principe (ce que fait le Hub vs votre SaaS)</a></li>
+        <li><a href="#compte">Compte Developer Portal</a></li>
+        <li><a href="#app">Créer l’application &amp; les plans</a></li>
+        <li><a href="#cle">Clé API Hub (<code>mbs_…</code>)</a></li>
+        <li><a href="#telechargements">Télécharger le kit + ce guide</a></li>
+        <li><a href="#install">Installer le kit dans votre projet</a></li>
+        <li><a href="#auth">Page d’authentification existante (IMPORTANT)</a></li>
+        <li><a href="#edge">Edge Functions &amp; secrets</a></li>
+        <li><a href="#paiement">Paiement &amp; licences</a></li>
+        <li><a href="#affiliate">Affiliation / code promo</a></li>
+        <li><a href="#tests">Checklist de tests</a></li>
+        <li><a href="#securite">Règles de sécurité (non négociables)</a></li>
+        <li><a href="#ia">Utiliser le prompt IA (Cursor)</a></li>
+        <li><a href="#aide">En cas de blocage</a></li>
+      </ol>
+    </section>
+
+    <section id="principe">
+      <h2><span class="step">1</span>Principe</h2>
+      <table>
+        <thead><tr><th>Composant</th><th>Rôle</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Hub Central</strong></td><td>Identité clients, licences, paiements (Chariow), commissions influenceurs</td></tr>
+          <tr><td><strong>Developer Portal</strong></td><td>Votre cockpit : apps, tarifs, clé API, téléchargements kit/SDK/guides</td></tr>
+          <tr><td><strong>Votre SaaS</strong></td><td>Métier + UI (ne pas reconstruire) — appelle le Hub via Edge/SDK</td></tr>
+          <tr><td><strong>MbeukSaaS-Integration-Kit</strong></td><td>Templates Edge, frontend affiliate, scripts, docs pour brancher le SaaS</td></tr>
+        </tbody>
+      </table>
+      <div class="tip">Parcours client officiel : <strong>Marketplace → Installer</strong> → compte dans votre SaaS → acheter/essai → licence confirmée par webhook Hub.</div>
+    </section>
+
+    <section id="compte">
+      <h2><span class="step">2</span>Compte Developer Portal</h2>
+      <ol>
+        <li>Ouvrez le Developer Portal Mbeuk et créez / activez votre compte.</li>
+        <li>Complétez le profil (entreprise, contacts).</li>
+        <li>Attendez l’activation si une validation admin est requise.</li>
+      </ol>
+    </section>
+
+    <section id="app">
+      <h2><span class="step">3</span>Application &amp; plans</h2>
+      <ol>
+        <li>Créez une <strong>application SaaS</strong> (nom, slug, description, URL d’installation).</li>
+        <li>Ajoutez au moins un <strong>produit / plan</strong> (prix, essai éventuel).</li>
+        <li>Notez les UUID :
+          <ul>
+            <li><code>MBEUK_APPLICATION_ID</code> — identité technique de l’app</li>
+            <li><code>MBEUK_PRODUCT_ID</code> — identité commerciale / licence</li>
+          </ul>
+        </li>
+      </ol>
+      <div class="warn">Ne jamais hardcoder ces UUID dans le code public frontend. Secrets = serveur / Edge Functions uniquement.</div>
+    </section>
+
+    <section id="cle">
+      <h2><span class="step">4</span>Clé API Hub</h2>
+      <ol>
+        <li>Allez dans <strong>/sdk</strong> du portal.</li>
+        <li>Générez une clé <code>mbs_…</code> liée à votre application.</li>
+        <li>Scopes recommandés : <code>auth:login</code>, <code>auth:register</code>, <code>licenses:read</code>, <code>licenses:write</code>, <code>checkout:write</code>, et <code>influencers:read</code> si affiliation.</li>
+        <li>Copiez la clé <strong>une seule fois</strong> — stockez-la dans les secrets Supabase / Vercel (jamais dans Git).</li>
+      </ol>
+    </section>
+
+    <section id="telechargements">
+      <h2><span class="step">5</span>Téléchargements (page /sdk)</h2>
+      <ul>
+        <li><strong>MbeukSaaS-Integration-Kit-v1.8.0.zip</strong> — kit complet avec MbeukHubGate</li>
+        <li><strong>mbeuk-hub-sdk-2.0.0.tgz</strong> — SDK npm</li>
+        <li><strong>GUIDE_CONNEXION_SAAS_HUB_A_Z.html</strong> — ce document</li>
+        <li><strong>PROMPT_CONNECT_SAAS_TO_HUB.md</strong> — prompt pour Cursor / agent IA</li>
+      </ul>
+    </section>
+
+    <section id="install">
+      <h2><span class="step">6</span>Installer le kit</h2>
+      <pre>unzip MbeukSaaS-Integration-Kit-v1.8.0.zip
+cd mon-saas
+node chemin/kit/scripts/install/apply-kit.mjs .
+# copies barrière, PWA si absente, edges manquantes — n'écrase jamais l'auth
+node chemin/kit/scripts/health-check.mjs .
+node chemin/kit/scripts/validate/validate.mjs .</pre>
+      <p>Lisez aussi <code>docs/HOW_TO_USE.md</code> et <code>templates/frontend/universal-barrier/README.md</code>.</p>
+    </section>
+
+    <section id="auth">
+      <h2><span class="step">7</span>Si votre projet a DÉJÀ une page d’authentification</h2>
+      <div class="warn"><strong>FIX, DON’T REBUILD.</strong> Ne créez pas une nouvelle UI login/register. Branchez Hub derrière les écrans existants.</div>
+      <ul>
+        <li>Conservez vos formulaires, styles, routes (<code>/login</code>, <code>/auth</code>, etc.).</li>
+        <li>Remplacez uniquement l’appel « auth locale » par :
+          <ul>
+            <li>Edge <code>hub-auth-login</code> / <code>hub-auth-register</code>, ou</li>
+            <li>SDK serveur <code>hub.auth.login</code> / <code>register</code></li>
+          </ul>
+        </li>
+        <li>Séparez <strong>connexion réussie</strong> (session) et <strong>licence active</strong> (entitlement) : un utilisateur peut se connecter sans être PRO.</li>
+        <li>Messages UX recommandés :
+          <ul>
+            <li>Email mal formé → « Email invalide… »</li>
+            <li>Email inconnu → « Vérifiez votre email et mot de passe. »</li>
+            <li>Mauvais mot de passe → « Vérifiez votre mot de passe. »</li>
+          </ul>
+        </li>
+      </ul>
+      <h3>Installer la barrière universelle</h3>
+      <p>Commande unique recommandée : <code>node scripts/install/apply-kit.mjs .</code>
+      puis <code>import { bootMbeukHubGate } from "./mbeuk-gate/boot.js"</code> au bootstrap.
+      Ajoutez <code>&lt;div id="hub-user-status"&gt;</code> dans le header existant.
+      Si aucune auth n’existe, <code>authMode: "universal"</code>.</p>
+      <p>Ajoutez un point de montage header pour le nom et les badges
+      <strong>Essai gratuit</strong> / <strong>Standard</strong>. Le guide
+      complet se trouve dans
+      <code>templates/frontend/universal-barrier/README.md</code>.</p>
+    </section>
+
+    <section id="edge">
+      <h2><span class="step">8</span>Edge Functions &amp; secrets</h2>
+      <ol>
+        <li>Copiez <code>templates/supabase/edge-functions/</code> (dont <code>hub-*</code> et <code>hub-validate-promo</code>).</li>
+        <li>Configurez les secrets Supabase : <code>MBEUK_HUB_URL</code>, <code>MBEUK_HUB_API_KEY</code>, <code>MBEUK_PRODUCT_ID</code>, <code>MBEUK_APPLICATION_ID</code>, <code>MBEUK_AUTH_BRIDGE_SECRET</code>, <code>MBEUK_SERVICE_ROLE_KEY</code>.</li>
+        <li>Déployez avec <code>templates/supabase/deploy-edge-functions.sh</code>.</li>
+      </ol>
+      <pre>bash scripts/deploy-edge-functions.sh</pre>
+    </section>
+
+    <section id="paiement">
+      <h2><span class="step">9</span>Paiement &amp; licences</h2>
+      <ol>
+        <li>Checkout uniquement via Hub (<code>hub-checkout</code>) — prix résolu côté serveur.</li>
+        <li>La page « succès » du fournisseur de paiement <strong>n’est pas</strong> une preuve de licence.</li>
+        <li>Après paiement : polling <code>hub-sync-license</code> / statut licence jusqu’à accès PRO.</li>
+        <li>Webhook Chariow = sur le <strong>Hub</strong>, pas sur votre SaaS.</li>
+      </ol>
+    </section>
+
+    <section id="affiliate">
+      <h2><span class="step">10</span>Affiliation</h2>
+      <ul>
+        <li>Capturer <code>?ref=</code> au chargement (fichier <code>hub-affiliate.js</code> du kit).</li>
+        <li>Code promo manuel optionnel ; code vide OK si <code>link_ref</code> présent.</li>
+        <li>Valider via <code>hub-validate-promo</code>.</li>
+        <li>Message invalide : « Code promo invalide. Vérifiez le code et réessayez. »</li>
+      </ul>
+    </section>
+
+    <section id="tests">
+      <h2><span class="step">11</span>Checklist de tests</h2>
+      <ul>
+        <li>☐ Register + login (avec et sans licence)</li>
+        <li>☐ Email / mot de passe incorrects → bons messages</li>
+        <li>☐ Essai gratuit (si activé)</li>
+        <li>☐ Achat → webhook → accès PRO (poll)</li>
+        <li>☐ Code promo valide / invalide / vide + <code>?ref=</code></li>
+        <li>☐ Aucun secret dans le frontend ni dans Git</li>
+      </ul>
+    </section>
+
+    <section id="securite">
+      <h2><span class="step">12</span>Sécurité — non négociable</h2>
+      <ul>
+        <li>Clé <code>mbs_…</code> : <strong>serveur uniquement</strong></li>
+        <li>Pas de création de licence côté client après redirect</li>
+        <li>HTTPS partout</li>
+        <li>Rate-limit sur login / checkout (Edge)</li>
+        <li>Ne jamais coller secrets dans un chat IA</li>
+      </ul>
+    </section>
+
+    <section id="ia">
+      <h2><span class="step">13</span>Prompt IA</h2>
+      <p>Téléchargez <code>PROMPT_CONNECT_SAAS_TO_HUB.md</code> + le ZIP kit, ouvrez Cursor dans votre repo SaaS, et donnez le prompt.</p>
+      <div class="tip">Si une page auth existe déjà, l’agent doit <strong>fixer le bridge Hub</strong>, pas reconstruire l’écran.</div>
+    </section>
+
+    <section id="aide">
+      <h2><span class="step">14</span>Aide</h2>
+      <ul>
+        <li>Kit : <code>docs/troubleshooting.md</code></li>
+        <li>Portal : page /sdk → diagnostics clé</li>
+        <li>Support Mbeuk / admin Hub selon votre contrat</li>
+      </ul>
+    </section>
+  </main>
+  <footer>
+    MbeukSaaS-Integration-Kit v1.8.0 · Guide A→Z connexion Hub · Developer Portal
+  </footer>
+</body>
+</html>

@@ -1,0 +1,14 @@
+{
+  "saas_root": "/workspace",
+  "integration_kit_version": "1.8.0",
+  "pwa": {
+    "present": true,
+    "plugin": false,
+    "manifest": "manifest.json",
+    "serviceWorker": "sw.js"
+  },
+  "ok": true,
+  "message": "OK - Le kit et la PWA installable ont été bien connectés et vérifiés sans faille",
+  "issues": [],
+  "success_message": "OK - Le kit et la PWA installable ont été bien connectés et vérifiés sans faille"
+}

@@ -1,0 +1,31 @@
+{
+  "schemaVersion": "1.1",
+  "saas": {
+    "name": "MbeukImmig Pro",
+    "slug": "mbeukimmig-pro",
+    "ownerType": "developer",
+    "description": "Orientation immigration, procédures, Brain AI et outils candidature (CV/lettre)."
+  },
+  "integration": {
+    "sdkPackage": "mbeuk-hub-sdk",
+    "sdkVersion": "2.0.0",
+    "integrationKitVersion": "1.8.01",
+    "contractVersion": "v1",
+    "identityAuthority": "mbeuk_hub",
+    "edgeFunctionsPrefix": "hub-"
+  },
+  "publicConfig": {
+    "environmentVar": "MBEUK_ENVIRONMENT",
+    "productIdVar": "MBEUK_PRODUCT_ID",
+    "applicationIdVar": "MBEUK_APPLICATION_ID",
+    "hubUrlVar": "MBEUK_HUB_URL",
+    "frontendSupabaseUrlVar": "VITE_SUPABASE_URL",
+    "frontendSupabaseAnonKeyVar": "VITE_SUPABASE_ANON_KEY"
+  },
+  "frontendBarrier": {
+    "protectedRoot": "#app",
+    "headerTarget": "#hub-user-status",
+    "authMode": "existing",
+    "bootModule": "src/mbeuk-gate/boot.js"
+  }
+}
