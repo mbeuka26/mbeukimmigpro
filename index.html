@@ -3,49 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Guide Immigration Pro 2.1</title>
-<meta name="description" content="Guide complet d'immigration pour la diaspora africaine — 20+ pays">
+<title>MbeukImmig Pro</title>
+<meta name="description" content="Plateforme d'orientation immigration et outils candidature (CV, lettre) — diaspora africaine">
 <meta name="theme-color" content="#0d0d14">
 
 <!-- PWA -->
 <link rel="manifest" href="./manifest.json">
 <link rel="apple-touch-icon" href="./icons/icon-192.png">
 
-<!-- ════════════════════════════════════════════════════
-     GARDE LICENCE — Exécuté en PREMIER avant tout affichage
-     Redirige vers access.html si aucune licence valide
-     ════════════════════════════════════════════════════ -->
-<script>
-(function() {
-  'use strict';
-  var LS_LICENCE   = 'immigration_guide_licence';
-  var LS_VALIDATED = 'immigration_guide_validated';
-
-  function getLicenceLocale() {
-    try {
-      var raw = localStorage.getItem(LS_LICENCE);
-      if (!raw) return null;
-      var data = JSON.parse(raw);
-      if (data.expiration_date && new Date() > new Date(data.expiration_date)) {
-        localStorage.removeItem(LS_LICENCE);
-        localStorage.removeItem(LS_VALIDATED);
-        return null;
-      }
-      return data;
-    } catch(e) { return null; }
-  }
-
-  var session   = getLicenceLocale();
-  var validated = localStorage.getItem(LS_VALIDATED) === '1';
-
-  // Offline + validé → accès autorisé
-  if (!navigator.onLine && validated && session) { /* OK */ }
-  // Pas de session → rediriger
-  else if (!session) {
-    window.location.replace('./access.html');
-  }
-})();
-</script>
+<!-- Accès libre — authentification Supabase et hub commercial à venir (Prompt 2/2) -->
 <!-- Polices Google (chargées si en ligne, fallback système si hors ligne) -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -542,8 +508,8 @@ body {
   <div class="header-inner">
     <div class="logo">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" style="color:var(--gold)"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke="currentColor" stroke-width="2" fill="var(--gold)" fill-opacity="0.3"/><polyline points="14 2 14 8 20 8" stroke="currentColor" stroke-width="2"/><line x1="16" y1="13" x2="8" y2="13" stroke="currentColor" stroke-width="2"/><line x1="16" y1="17" x2="8" y2="17" stroke="currentColor" stroke-width="2"/><polyline points="10 9 9 9 8 9" stroke="currentColor" stroke-width="2"/></svg>
-      Mbeuk<span>CV</span>progenerator
-      <div class="logo-sub">by Mbeuka Brice</div>
+      Mbeuk<span>Immig</span> Pro
+      <div class="logo-sub">Guide · Procédures · Candidature</div>
     </div>
     <span class="header-version" id="connectionStatus">🟢 En ligne</span>
   </div>
@@ -1061,9 +1027,11 @@ Exemple :
 
     </div>
 
-    <div class="copyright">
-      🛡️ Ce document est protégé. Toute reproduction est interdite sous peine de poursuites judiciaires.
-      &nbsp;·&nbsp; © 2025 Mbeuka Brice — MbeukCvprogenerator
+    <div class="copyright" style="max-width:720px;margin:0 auto;line-height:1.6">
+      <strong>Avertissement</strong> — MbeukImmig Pro fournit de l’information et des outils d’organisation.
+      Aucune réponse générée ne garantit l’obtention d’un visa ou d’un titre de séjour.
+      Consultez les autorités compétentes et, si besoin, un professionnel habilité (avocat, conseiller réglementé).
+      &nbsp;·&nbsp; © 2025–2026 Mbeuka Brice — MbeukImmig Pro
     </div>
   </div>
 </footer>
@@ -1076,16 +1044,6 @@ Exemple :
 
 <script>
 
-// ── PROTECTION LICENCE — NE PAS SUPPRIMER ──
-(function() {
-  const lic = sessionStorage.getItem('mbeukCV_licence');
-  if (!lic) { window.location.href = './acces.html'; return; }
-  try {
-    const data = JSON.parse(lic);
-    const sub = document.querySelector('.logo-sub');
-    if (sub && data.acheteur) sub.textContent = 'Licence : ' + data.acheteur;
-  } catch(e) { window.location.href = './acces.html'; }
-})();
 // ══════════════════════════════════════════════
 // DÉTECTION CONNEXION & MODE HORS LIGNE
 // ══════════════════════════════════════════════
@@ -1108,37 +1066,6 @@ window.addEventListener('offline', updateConnectionStatus);
 // ══════════════════════════════════════════════
 // SERVICE WORKER — CACHE HORS LIGNE
 // ══════════════════════════════════════════════
-if ('serviceWorker' in navigator) {
-  const swCode = `
-const CACHE = 'mbeukCV-v1';
-const ASSETS = [location.href];
-self.addEventListener('install', e => {
-  e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)));
-  self.skipWaiting();
-});
-self.addEventListener('activate', e => {
-  e.waitUntil(caches.keys().then(keys =>
-    Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
-  ));
-  self.clients.claim();
-});
-self.addEventListener('fetch', e => {
-  e.respondWith(
-    caches.match(e.request).then(r => r || fetch(e.request).then(res => {
-      const clone = res.clone();
-      caches.open(CACHE).then(c => c.put(e.request, clone));
-      return res;
-    }).catch(() => caches.match(e.request)))
-  );
-});
-  `;
-  try {
-    const blob = new Blob([swCode], { type: 'application/javascript' });
-    const swUrl = URL.createObjectURL(blob);
-    navigator.serviceWorker.register(swUrl).catch(() => {});
-  } catch(e) {}
-}
-
 // ══════════════════════════════════════════════
 // NAVIGATION
 // ══════════════════════════════════════════════
@@ -1557,16 +1484,6 @@ document.addEventListener('DOMContentLoaded', () => {
       .then(reg => console.log('[SW] Actif :', reg.scope))
       .catch(err => console.warn('[SW] Erreur :', err));
   }
-
-  // ── Afficher info licence dans le header ──
-  try {
-    var lic = JSON.parse(localStorage.getItem('immigration_guide_licence'));
-    if (lic && lic.expiration_date) {
-      var exp   = new Date(lic.expiration_date).toLocaleDateString('fr-FR');
-      var badge = document.querySelector('.header-version');
-      if (badge) badge.textContent = 'Licence · exp. ' + exp;
-    }
-  } catch(e) {}
 
   // ── Sécurité : blocage clic droit ──
   document.addEventListener('contextmenu', function(e) { e.preventDefault(); });

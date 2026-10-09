@@ -1,58 +1,16 @@
 {
-  "name": "Guide Immigration Pro 2.1",
-  "short_name": "MbeukImmigPro",
-  "description": "Guide complet d'immigration pour la diaspora africaine — 20+ pays couverts",
-  "start_url": "./access.html",
+  "name": "MbeukImmig Pro",
+  "short_name": "MbeukImmig",
+  "description": "Orientation immigration, procédures et outils candidature (CV, lettre)",
+  "start_url": "./index.html",
   "display": "standalone",
   "orientation": "portrait-primary",
-  "background_color": "#0a0a0f",
-  "theme_color": "#0a0a0f",
+  "background_color": "#0d0d14",
+  "theme_color": "#0d0d14",
   "lang": "fr",
   "scope": "./",
-  "categories": ["education", "travel", "lifestyle"],
+  "categories": ["education", "travel", "productivity"],
   "icons": [
-    {
-      "src": "icons/icon-72.png",
-      "sizes": "72x72",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "icons/icon-96.png",
-      "sizes": "96x96",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "icons/icon-128.png",
-      "sizes": "128x128",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "icons/icon-144.png",
-      "sizes": "144x144",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "icons/icon-152.png",
-      "sizes": "152x152",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "icons/icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "icons/icon-384.png",
-      "sizes": "384x384",
-      "type": "image/png",
-      "purpose": "any"
-    },
     {
       "src": "icons/icon-512.png",
       "sizes": "512x512",
@@ -60,12 +18,11 @@
       "purpose": "any maskable"
     }
   ],
-  "screenshots": [],
   "shortcuts": [
     {
-      "name": "Accès rapide",
-      "short_name": "Accès",
-      "description": "Ouvrir le guide directement",
+      "name": "Accueil",
+      "short_name": "Accueil",
+      "description": "Ouvrir MbeukImmig Pro",
       "url": "./index.html",
       "icons": [{ "src": "icons/icon-512.png", "sizes": "512x512" }]
     }
