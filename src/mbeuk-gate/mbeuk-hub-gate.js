@@ -347,7 +347,21 @@ export class MbeukHubGate extends EventTarget {
       { full_name, email, phone, password },
       this.device,
     );
-    await this.refresh();
+    try {
+      await this.refresh();
+    } catch (error) {
+      if (this.client.session) {
+        this.setState(GateStatus.BLOCKED, {
+          entitlement: {
+            status: GateStatus.BLOCKED,
+            label: "Accès requis",
+            reason: "UNPAID",
+          },
+        });
+        return result;
+      }
+      throw error;
+    }
     return result;
   }
 
@@ -557,7 +571,10 @@ export class MbeukHubGate extends EventTarget {
             this.mountAccessBarrier();
             return;
           }
-          message({ type: "success", text: "Compte créé avec succès." });
+          message({ type: "success", text: "Compte créé. Redirection…" });
+          if (this.config.pageRouting && isAuthEntryPage()) {
+            globalThis.location.replace(PAGE_ROUTES.chooseAccess);
+          }
         } catch (error) {
           message({ type: "error", text: authFeedback(error), error });
         }
