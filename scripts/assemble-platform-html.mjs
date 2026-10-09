@@ -18,8 +18,22 @@ html = html.replace('<!-- __ASSISTANT_PLACEHOLDER__ -->', assistant.trim());
 if (!html.includes('platform-assistant.css')) {
   html = html.replace(
     '</style>\n</head>',
-    '</style>\n<link rel="stylesheet" href="./css/platform-assistant.css">\n</head>',
+    '</style>\n<link rel="stylesheet" href="./css/platform-assistant.css">\n<link rel="stylesheet" href="./css/app-shell.css">\n</head>',
   );
+}
+
+const moduleBar = `
+<nav class="app-modules" aria-label="Modules métier">
+  <span class="app-modules__label">Modules</span>
+  <a href="#home" data-module-link="immipro" class="is-active">ImmiPro</a>
+  <a href="#cv-generator" data-module-link="cv">CV Pro</a>
+  <a href="#assistant-ia" data-module-link="ia">Agent IA</a>
+  <span class="app-modules__spacer"></span>
+  <button type="button" class="app-modules__logout" data-mbeuk-logout>Déconnexion</button>
+</nav>`;
+
+if (!html.includes('app-modules')) {
+  html = html.replace('</header>', `</header>\n${moduleBar.trim()}`);
 }
 
 if (!html.includes('id="app"')) {

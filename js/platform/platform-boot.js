@@ -8,12 +8,35 @@ import '../hub/hub-affiliate.js';
 let locale = document.documentElement.lang?.startsWith('en') ? 'en' : 'fr';
 let supabase = null;
 
-function authFeedback(payload) {
-  const el = document.getElementById('authMsg');
-  if (!el) return;
-  el.textContent = payload.text || '';
-  el.className = payload.type === 'error' ? 'mbeuk-msg error' : 'mbeuk-msg';
+function bindModuleNav() {
+  const links = document.querySelectorAll('.app-modules [data-module-link]');
+  const sections = {
+    immipro: document.getElementById('home'),
+    cv: document.getElementById('cv-generator'),
+    ia: document.getElementById('assistant-ia'),
+  };
+  const setActive = (id) => {
+    links.forEach((a) => a.classList.toggle('is-active', a.dataset.moduleLink === id));
+  };
+  links.forEach((a) => {
+    a.addEventListener('click', (e) => {
+      const key = a.dataset.moduleLink;
+      const target = sections[key];
+      if (target) {
+        e.preventDefault();
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        setActive(key);
+        history.replaceState(null, '', `#${target.id}`);
+      }
+    });
+  });
+  const hash = (location.hash || '#home').slice(1);
+  if (hash === 'cv-generator') setActive('cv');
+  else if (hash === 'assistant-ia') setActive('ia');
+  else setActive('immipro');
 }
+
+bindModuleNav();
 
 async function loadConfig() {
   try {
@@ -24,11 +47,7 @@ async function loadConfig() {
       return mod;
     }
   } catch (_) {}
-  const el = document.getElementById('authMsg');
-  if (el) {
-    el.textContent =
-      'Supabase non configuré (js/supabase-config.js). Le guide reste disponible ; l’assistant IA nécessite le déploiement CI.';
-  }
+  console.warn('Supabase non configuré — assistant IA indisponible.');
   return null;
 }
 
@@ -174,7 +193,7 @@ refreshConsoleLink();
 
 const configMod = await loadConfig();
 if (configMod?.SUPABASE_URL && configMod?.SUPABASE_ANON_KEY) {
-  await bootMbeukHubGate({
+  const gate = await bootMbeukHubGate({
     supabaseUrl: configMod.SUPABASE_URL,
     anonKey: configMod.SUPABASE_ANON_KEY,
     productName: 'MbeukImmig Pro',
@@ -182,8 +201,12 @@ if (configMod?.SUPABASE_URL && configMod?.SUPABASE_ANON_KEY) {
       'Guide immigration 20+ pays, assistant IA, projets et candidature (CV intégré).',
     sector: 'education',
     authMode: 'existing',
+    pageRouting: true,
     skipLiveHub: true,
-    feedback: authFeedback,
+  });
+  document.querySelector('[data-mbeuk-logout]')?.addEventListener('click', async () => {
+    await gate.logout();
+    globalThis.location.replace('./auth.html');
   });
   supabase.auth.onAuthStateChange(refreshAuth);
   refreshAuth();

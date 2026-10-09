@@ -1,0 +1,67 @@
+.app-modules {
+  position: sticky;
+  top: 0;
+  z-index: 900;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.65rem clamp(1rem, 3vw, 2rem);
+  border-bottom: 1px solid rgba(201, 162, 39, 0.22);
+  background: rgba(7, 21, 38, 0.94);
+  backdrop-filter: blur(8px);
+}
+
+.app-modules__label {
+  margin-right: 0.35rem;
+  color: var(--text-muted, #9aacbb);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.app-modules a,
+.app-modules button.app-modules__logout {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.35rem;
+  padding: 0 0.85rem;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-muted, #c5d0db);
+  font-size: 0.82rem;
+  font-weight: 650;
+  text-decoration: none;
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s, background 0.2s;
+}
+
+.app-modules a:hover,
+.app-modules a:focus-visible {
+  border-color: var(--gold, #c9a227);
+  color: var(--white, #fff);
+}
+
+.app-modules a.is-active {
+  border-color: var(--gold, #c9a227);
+  background: rgba(201, 162, 39, 0.12);
+  color: var(--gold-light, #e8c547);
+}
+
+.app-modules__spacer {
+  flex: 1;
+}
+
+.app-modules button.app-modules__logout {
+  border-color: rgba(248, 113, 113, 0.35);
+  color: #fca5a5;
+  font: inherit;
+}
+
+@media (max-width: 640px) {
+  .app-modules__label {
+    width: 100%;
+  }
+}

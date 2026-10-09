@@ -327,6 +327,7 @@
   .lang-btn:hover:not(.active){color:var(--white)}
 </style>
 <link rel="stylesheet" href="./css/platform-assistant.css">
+<link rel="stylesheet" href="./css/app-shell.css">
 </head>
 <body>
 <div id="app">
@@ -343,7 +344,6 @@
     <a href="#amerique">Amériques</a>
     <a href="#moyen-orient">Moyen-Orient</a>
     <a href="#asie">Asie-Pacifique</a>
-    <a href="#cv-generator">Base CV</a>
     <a href="#assistant-ia">Assistant IA</a>
     <a href="./admin.html">Admin</a>
     <a href="#contact" class="nav-cta">Obtenir de l'aide →</a>
@@ -357,6 +357,14 @@
     <button class="mobile-menu-btn" onclick="toggleMobileMenu()">☰</button>
   </div>
 </header>
+<nav class="app-modules" aria-label="Modules métier">
+  <span class="app-modules__label">Modules</span>
+  <a href="#home" data-module-link="immipro" class="is-active">ImmiPro</a>
+  <a href="#cv-generator" data-module-link="cv">CV Pro</a>
+  <a href="#assistant-ia" data-module-link="ia">Agent IA</a>
+  <span class="app-modules__spacer"></span>
+  <button type="button" class="app-modules__logout" data-mbeuk-logout>Déconnexion</button>
+</nav>
 
 <!-- HERO -->
 <section class="hero" id="home">
@@ -2170,37 +2178,9 @@
 <section id="assistant-ia">
   <div class="mbeuk-wrap">
     <div class="section-title" style="text-align:center;margin-bottom:2rem">
-      <div class="section-tag">MbeukImmig Pro</div>
-      <h2>Assistant IA &amp; compte Hub</h2>
-      <p style="color:var(--text-muted);margin-top:0.5rem">Projets, recherche documentaire, Brain AI (BYOK) et admissibilité FR/CA — données sur Supabase.</p>
-    </div>
-    <div class="mbeuk-card" id="authCard">
-      <h3>Compte Hub Central</h3>
-      <p class="mbeuk-msg">Session Hub ≠ entitlement PRO. Licence gérée par le Hub Mbeuk.</p>
-      <form id="login-form">
-        <label for="email">Email</label>
-        <input id="email" name="email" type="email" autocomplete="username" required>
-        <label for="password">Mot de passe</label>
-        <input id="password" name="password" type="password" autocomplete="current-password" required>
-        <button type="submit">Se connecter</button>
-      </form>
-      <form id="register-form" style="margin-top:1rem">
-        <label for="regEmail">Email (inscription)</label>
-        <input id="regEmail" name="email" type="email" autocomplete="email" required>
-        <label for="regPassword">Mot de passe</label>
-        <input id="regPassword" name="password" type="password" autocomplete="new-password" required>
-        <label for="regName">Nom affiché</label>
-        <input id="regName" name="display_name" type="text" autocomplete="name">
-        <button type="submit" class="mbeuk-btn-secondary">Créer un compte</button>
-      </form>
-      <label for="promo-code">Code promo (optionnel)</label>
-      <input id="promo-code" name="promo_code" type="text" autocomplete="off">
-      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
-        <button type="button" data-mbeuk-checkout>Acheter une licence</button>
-        <button type="button" class="mbeuk-btn-secondary" data-mbeuk-trial>Essai gratuit</button>
-        <button type="button" class="mbeuk-btn-secondary" data-mbeuk-logout>Déconnexion</button>
-      </div>
-      <p class="mbeuk-msg" id="authMsg"></p>
+      <div class="section-tag">Agent IA</div>
+      <h2>Assistant &amp; projets immigration</h2>
+      <p style="color:var(--text-muted);margin-top:0.5rem">Projets, recherche documentaire (RAG), Brain AI (BYOK) et admissibilité FR/CA — données sur Supabase.</p>
     </div>
     <div class="mbeuk-grid">
       <div class="mbeuk-card">
