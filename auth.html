@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MbeukImmig Pro — Connexion</title>
+  <link rel="manifest" href="./manifest.json">
+  <meta name="theme-color" content="#071526">
+  <link rel="stylesheet" href="./css/auth-portal.css">
+  <link rel="stylesheet" href="./src/mbeuk-gate/mbeuk-hub-gate.css">
+</head>
+<body>
+  <div class="auth-portal" id="auth-root">
+    <div class="auth-portal__panel">
+      <p class="auth-portal__eyebrow">MbeukImmig Pro</p>
+      <h1 id="auth-title">Connexion</h1>
+      <p class="auth-portal__intro">
+        Guide immigration 20+ pays, CV international et agent IA. Identifiez-vous pour accéder à votre espace métier.
+      </p>
+      <div class="auth-portal__tabs" role="tablist">
+        <button type="button" class="auth-portal__tab" id="tab-login" role="tab" aria-selected="true">Se connecter</button>
+        <button type="button" class="auth-portal__tab" id="tab-register" role="tab" aria-selected="false">Créer un compte</button>
+      </div>
+      <form id="login-form" class="auth-portal__form" data-auth-panel="login">
+        <label class="auth-portal__field">Email
+          <input name="email" type="email" autocomplete="username" required>
+        </label>
+        <label class="auth-portal__field">Mot de passe
+          <input name="password" type="password" autocomplete="current-password" required>
+        </label>
+        <button type="submit" class="auth-portal__primary">Se connecter</button>
+        <button type="button" class="auth-portal__link" id="btn-forgot">Mot de passe oublié ?</button>
+      </form>
+      <form id="register-form" class="auth-portal__form" data-auth-panel="register" hidden>
+        <label class="auth-portal__field">Nom complet
+          <input name="full_name" type="text" autocomplete="name" required>
+        </label>
+        <label class="auth-portal__field">Téléphone
+          <input name="phone" type="tel" autocomplete="tel">
+        </label>
+        <label class="auth-portal__field">Email
+          <input name="email" type="email" autocomplete="email" required>
+        </label>
+        <label class="auth-portal__field">Mot de passe
+          <input name="password" type="password" autocomplete="new-password" required minlength="8">
+        </label>
+        <button type="submit" class="auth-portal__primary">Créer mon compte</button>
+      </form>
+      <form id="forgot-form" class="auth-portal__form" data-auth-panel="forgot" hidden>
+        <label class="auth-portal__field">Email
+          <input name="email" type="email" autocomplete="email" required>
+        </label>
+        <button type="submit" class="auth-portal__primary">Envoyer le lien</button>
+        <button type="button" class="auth-portal__link" id="btn-back-login">Retour à la connexion</button>
+      </form>
+      <p class="auth-portal__feedback" id="authMsg" aria-live="polite"></p>
+    </div>
+    <div class="auth-portal__visual">
+      <div class="auth-portal__scene" id="immigration-scene"></div>
+    </div>
+  </div>
+  <script type="module" src="./js/platform/auth-boot.js"></script>
+</body>
+</html>

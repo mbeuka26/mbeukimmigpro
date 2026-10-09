@@ -2,7 +2,7 @@
   "name": "MbeukImmig Pro",
   "short_name": "MbeukImmig",
   "description": "Orientation immigration, procédures et outils candidature (CV, lettre)",
-  "start_url": "./platform.html",
+  "start_url": "./auth.html",
   "display": "standalone",
   "orientation": "portrait-primary",
   "background_color": "#0a1628",

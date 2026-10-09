@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MbeukImmig Pro — Code ambassadeur</title>
+  <link rel="manifest" href="./manifest.json">
+  <meta name="theme-color" content="#071526">
+  <link rel="stylesheet" href="./css/auth-portal.css">
+</head>
+<body>
+  <div class="auth-portal" id="promo-root">
+    <div class="auth-portal__panel">
+      <p class="auth-portal__eyebrow">MbeukImmig Pro</p>
+      <h1>Code ambassadeur</h1>
+      <p class="auth-portal__intro">
+        Saisissez un code influenceur si vous en avez un, puis continuez vers le checkout. Un code invalide sera signalé sans bloquer la suite si vous le retirez.
+      </p>
+      <form id="promo-form" class="auth-portal__form">
+        <label class="auth-portal__field">Code promo (facultatif)
+          <input id="promo-code" name="promo_code" type="text" autocomplete="off" placeholder="Ex. AMB2026">
+        </label>
+        <button type="button" class="auth-portal__primary" data-mbeuk-checkout>Continuer vers le paiement</button>
+        <button type="button" class="auth-portal__link" id="btn-skip-promo">Continuer sans code</button>
+      </form>
+      <p class="auth-portal__feedback" id="authMsg" aria-live="polite"></p>
+      <button type="button" class="auth-portal__link" id="btn-back-access" style="margin-top:0.5rem">← Retour au choix d’accès</button>
+    </div>
+    <div class="auth-portal__visual">
+      <div class="auth-portal__scene" id="immigration-scene"></div>
+    </div>
+  </div>
+  <script type="module" src="./js/platform/promo-boot.js"></script>
+</body>
+</html>

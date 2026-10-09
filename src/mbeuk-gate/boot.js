@@ -22,6 +22,7 @@ export async function bootMbeukHubGate(options = {}) {
     sector: options.sector || "generic",
     authMode: options.authMode || "existing",
     hideRenewLicense: options.hideRenewLicense !== false,
+    pageRouting: options.pageRouting === true,
   });
   await gate.boot();
   if (options.authMode !== "universal") {
@@ -43,6 +44,7 @@ export async function bootMbeukHubGate(options = {}) {
     skipLiveHub: options.skipLiveHub === true,
     silent: options.silentHealth === true,
   });
+  if (typeof window !== "undefined") window.__mbeukGate = gate;
   return gate;
 }
 

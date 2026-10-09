@@ -23,6 +23,36 @@ const REF_KEY = "mbeuk_hub_affiliate_ref";
 const PROMO_KEY = "mbeuk_hub_manual_promo";
 const RENEW_RE = /renouvel(er|lement).{0,12}licence|renew.{0,12}licen[cs]e/i;
 
+const PAGE_ROUTES = {
+  auth: "./auth.html",
+  chooseAccess: "./choose-access.html",
+  promo: "./promo.html",
+  app: "./platform.html",
+};
+
+function currentPageName() {
+  try {
+    const path = globalThis.location?.pathname || "";
+    return path.split("/").pop() || "index.html";
+  } catch {
+    return "index.html";
+  }
+}
+
+function isAuthEntryPage() {
+  const p = currentPageName();
+  return p === "auth.html" || p === "index.html" || p === "access.html";
+}
+
+function isAccessFlowPage() {
+  const p = currentPageName();
+  return p === "choose-access.html" || p === "promo.html";
+}
+
+function isAppPage() {
+  return currentPageName() === "platform.html";
+}
+
 export const GateStatus = Object.freeze({
   CHECKING: "checking",
   ANONYMOUS: "anonymous",
@@ -138,6 +168,7 @@ export class MbeukHubGate extends EventTarget {
       sector: "generic",
       hideRenewLicense: true,
       productDescription: "",
+      pageRouting: false,
       ...config,
     };
     this.client = config.client || new HubGateClient(config);
@@ -174,19 +205,63 @@ export class MbeukHubGate extends EventTarget {
     if ([GateStatus.TRIAL, GateStatus.STANDARD].includes(status)) {
       this.overlay?.remove();
       this.overlay = null;
-    } else if (status === GateStatus.BLOCKED) {
+      if (this.config.pageRouting) this.maybeRedirectForPageRouting(status);
+    } else if (status === GateStatus.BLOCKED && !this.config.pageRouting) {
       queueMicrotask(() => this.mountAccessBarrier());
+    } else if (status === GateStatus.ANONYMOUS && this.config.pageRouting) {
+      this.maybeRedirectForPageRouting(status);
+    } else if (status === GateStatus.BLOCKED && this.config.pageRouting) {
+      this.maybeRedirectForPageRouting(status);
+    }
+  }
+
+  maybeRedirectForPageRouting(status) {
+    if (!this.config.pageRouting || status === GateStatus.CHECKING) return;
+    const allowed = [GateStatus.TRIAL, GateStatus.STANDARD].includes(status);
+    const hasSession = Boolean(this.client.session);
+
+    if (isAuthEntryPage()) {
+      if (allowed) {
+        globalThis.location.replace(PAGE_ROUTES.app);
+      }
+      return;
+    }
+
+    if (isAccessFlowPage()) {
+      if (!hasSession) {
+        globalThis.location.replace(PAGE_ROUTES.auth);
+        return;
+      }
+      if (allowed) {
+        globalThis.location.replace(PAGE_ROUTES.app);
+      }
+      return;
+    }
+
+    if (isAppPage()) {
+      if (!hasSession && status === GateStatus.ANONYMOUS) {
+        globalThis.location.replace(PAGE_ROUTES.auth);
+        return;
+      }
+      if (!allowed && status === GateStatus.BLOCKED) {
+        globalThis.location.replace(PAGE_ROUTES.chooseAccess);
+      }
     }
   }
 
   applyProtection() {
     const root = document.querySelector(this.config.protectedRoot);
     const allowed = [GateStatus.TRIAL, GateStatus.STANDARD].includes(this.status);
-    if (root) {
-      root.hidden = !allowed;
-      if ("inert" in root) root.inert = !allowed;
-      root.setAttribute("aria-hidden", String(!allowed));
+    if (!root) return;
+    if (this.config.pageRouting && !isAppPage()) {
+      root.hidden = false;
+      if ("inert" in root) root.inert = false;
+      root.setAttribute("aria-hidden", "false");
+      return;
     }
+    root.hidden = !allowed;
+    if ("inert" in root) root.inert = !allowed;
+    root.setAttribute("aria-hidden", String(!allowed));
   }
 
   async boot() {
@@ -448,6 +523,10 @@ export class MbeukHubGate extends EventTarget {
           message({ type: "loading", text: "Connexion…" });
           await this.login(values);
           if (this.status === GateStatus.BLOCKED) {
+            if (this.config.pageRouting) {
+              this.maybeRedirectForPageRouting(GateStatus.BLOCKED);
+              return;
+            }
             message({ type: "error", text: NO_LICENSE_MESSAGE });
             this.mountAccessBarrier();
             return;
@@ -466,6 +545,14 @@ export class MbeukHubGate extends EventTarget {
           message({ type: "loading", text: "Création du compte…" });
           await this.register(values);
           if (this.status === GateStatus.BLOCKED) {
+            if (this.config.pageRouting && isAuthEntryPage()) {
+              globalThis.location.replace(PAGE_ROUTES.chooseAccess);
+              return;
+            }
+            if (this.config.pageRouting) {
+              this.maybeRedirectForPageRouting(GateStatus.BLOCKED);
+              return;
+            }
             message({ type: "error", text: NO_LICENSE_MESSAGE });
             this.mountAccessBarrier();
             return;

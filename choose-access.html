@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MbeukImmig Pro — Accès</title>
+  <link rel="manifest" href="./manifest.json">
+  <meta name="theme-color" content="#071526">
+  <link rel="stylesheet" href="./css/auth-portal.css">
+</head>
+<body>
+  <div class="auth-portal" id="access-root">
+    <div class="auth-portal__panel">
+      <p class="auth-portal__eyebrow">MbeukImmig Pro</p>
+      <h1>Choisissez votre accès</h1>
+      <p class="auth-portal__intro">
+        Votre compte est créé. Activez l’essai d’une journée ou achetez une licence pour débloquer le guide, le CV et l’agent IA.
+      </p>
+      <div class="auth-portal__alert" id="accessAlert" hidden></div>
+      <div class="auth-portal__options">
+        <button type="button" class="auth-portal__option" data-mbeuk-trial>
+          <strong>Essai gratuit — 1 jour</strong>
+          <span>Accès immédiat à toute la plateforme. À l’expiration, reconnectez-vous pour renouveler ou acheter une licence.</span>
+        </button>
+        <button type="button" class="auth-portal__option" id="btn-go-promo">
+          <strong>Acheter une licence</strong>
+          <span>Code ambassadeur (facultatif), puis paiement sécurisé via le Hub Central. L’accès PRO n’est confirmé qu’après webhook de paiement réussi.</span>
+        </button>
+      </div>
+      <p class="auth-portal__feedback" id="authMsg" aria-live="polite"></p>
+      <button type="button" class="auth-portal__link" data-mbeuk-logout style="margin-top:1.5rem">Se déconnecter</button>
+    </div>
+    <div class="auth-portal__visual">
+      <div class="auth-portal__scene" id="immigration-scene"></div>
+    </div>
+  </div>
+  <script type="module" src="./js/platform/access-boot.js"></script>
+</body>
+</html>
