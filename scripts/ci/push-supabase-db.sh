@@ -6,6 +6,7 @@ set -euo pipefail
 export SUPABASE_ACCESS_TOKEN
 supabase link --project-ref "$SUPABASE_PROJECT_REF" --yes
 
+# Déclenché en CI via workflow_dispatch, SUPABASE_DB_PUSH_ON_MAIN ou commit [db-push].
 echo "→ supabase db push (non-interactif)"
 set +e
 OUT=$(supabase db push --linked --yes 2>&1)
