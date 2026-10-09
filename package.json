@@ -11,6 +11,6 @@
     "vitest": "^3.1.4"
   },
   "dependencies": {
-    "mbeuk-hub-sdk": "file:/workspace/MbeukSaaS-Integration-Kit/sdk/official/mbeuk-hub-sdk-2.0.0.tgz"
+    "mbeuk-hub-sdk": "file:./MbeukSaaS-Integration-Kit/sdk/official/mbeuk-hub-sdk-2.0.0.tgz"
   }
 }
