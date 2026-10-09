@@ -1,0 +1,150 @@
+name: Deploy MbeukImmig (Supabase + Vercel)
+
+on:
+  workflow_dispatch:
+    inputs:
+      deploy_supabase_secrets:
+        description: "Synchroniser secrets → Supabase"
+        type: boolean
+        default: true
+      deploy_supabase_functions:
+        description: "Déployer Edge Functions Supabase"
+        type: boolean
+        default: true
+      deploy_supabase_db:
+        description: "Appliquer migrations SQL (db push)"
+        type: boolean
+        default: false
+      deploy_vercel_env:
+        description: "Synchroniser variables → Vercel"
+        type: boolean
+        default: true
+      deploy_vercel:
+        description: "Déployer frontend sur Vercel (--prod sur main)"
+        type: boolean
+        default: true
+  push:
+    branches: [main]
+    paths:
+      - "supabase/**"
+      - "src/**"
+      - "js/**"
+      - "platform.html"
+      - "index.html"
+      - "admin.html"
+      - "vercel.json"
+      - ".github/workflows/deploy-mbeukimmig.yml"
+      - "scripts/ci/**"
+
+concurrency:
+  group: deploy-mbeukimmig-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - name: Hub kit validate
+        run: |
+          if [ -f hub.integration.json ]; then
+            node MbeukSaaS-Integration-Kit/scripts/validate/validate.mjs .
+          fi
+
+  supabase:
+    needs: test
+    runs-on: ubuntu-latest
+    if: |
+      github.event_name == 'push' ||
+      github.event.inputs.deploy_supabase_secrets == 'true' ||
+      github.event.inputs.deploy_supabase_functions == 'true' ||
+      github.event.inputs.deploy_supabase_db == 'true'
+    environment: production
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_PROJECT_REF: ${{ vars.SUPABASE_PROJECT_REF }}
+      MBEUK_ENVIRONMENT: ${{ vars.MBEUK_ENVIRONMENT }}
+      MBEUK_HUB_URL: ${{ vars.MBEUK_HUB_URL }}
+      MBEUK_HUB_API_KEY: ${{ secrets.MBEUK_HUB_API_KEY }}
+      MBEUK_PRODUCT_ID: ${{ vars.MBEUK_PRODUCT_ID }}
+      MBEUK_APPLICATION_ID: ${{ vars.MBEUK_APPLICATION_ID }}
+      MBEUK_AUTH_BRIDGE_SECRET: ${{ secrets.MBEUK_AUTH_BRIDGE_SECRET }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      BYOK_MASTER_KEY_BASE64: ${{ secrets.BYOK_MASTER_KEY_BASE64 }}
+      CENTRAL_OPENAI_API_KEY: ${{ secrets.CENTRAL_OPENAI_API_KEY }}
+      CENTRAL_ANTHROPIC_API_KEY: ${{ secrets.CENTRAL_ANTHROPIC_API_KEY }}
+      CENTRAL_GOOGLE_API_KEY: ${{ secrets.CENTRAL_GOOGLE_API_KEY }}
+      CENTRAL_XAI_API_KEY: ${{ secrets.CENTRAL_XAI_API_KEY }}
+      CENTRAL_OPENROUTER_API_KEY: ${{ secrets.CENTRAL_OPENROUTER_API_KEY }}
+      CENTRAL_MISTRAL_API_KEY: ${{ secrets.CENTRAL_MISTRAL_API_KEY }}
+      CRAWLER_CRON_SECRET: ${{ secrets.CRAWLER_CRON_SECRET }}
+      ADMIN_SECRET: ${{ secrets.ADMIN_SECRET }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+      - name: Vérifier SUPABASE_PROJECT_REF
+        run: |
+          if [ -z "$SUPABASE_PROJECT_REF" ]; then
+            echo "❌ Configurez Variables → SUPABASE_PROJECT_REF dans GitHub"
+            exit 1
+          fi
+      - name: Secrets → Supabase
+        if: github.event_name == 'push' || github.event.inputs.deploy_supabase_secrets == 'true'
+        run: bash scripts/ci/deploy-supabase-secrets.sh
+      - name: Migrations → Supabase (db push)
+        if: |
+          (github.event_name == 'workflow_dispatch' && github.event.inputs.deploy_supabase_db == 'true') ||
+          (github.event_name == 'push' && vars.SUPABASE_DB_PUSH_ON_MAIN == 'true')
+        run: |
+          supabase link --project-ref "$SUPABASE_PROJECT_REF" --yes
+          supabase db push --linked
+      - name: Edge Functions → Supabase
+        if: github.event_name == 'push' || github.event.inputs.deploy_supabase_functions == 'true'
+        run: bash scripts/ci/deploy-supabase-functions.sh
+
+  vercel:
+    needs: [test, supabase]
+    runs-on: ubuntu-latest
+    if: |
+      always() &&
+      (needs.supabase.result == 'success' || needs.supabase.result == 'skipped') &&
+      (github.event_name == 'push' || github.event.inputs.deploy_vercel == 'true' || github.event.inputs.deploy_vercel_env == 'true')
+    environment: production
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
+      VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
+      VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+      SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
+      SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+      - run: npm ci
+      - name: Install Vercel CLI
+        run: npm i -g vercel@latest
+      - name: Variables → Vercel
+        if: github.event_name == 'push' || github.event.inputs.deploy_vercel_env == 'true'
+        run: bash scripts/ci/sync-vercel-env.sh
+      - name: Build config frontend
+        run: bash scripts/ci/generate-supabase-config.sh
+      - name: Deploy Vercel
+        if: github.event_name == 'push' || github.event.inputs.deploy_vercel == 'true'
+        run: |
+          if [ "${{ github.ref }}" = "refs/heads/main" ]; then
+            vercel deploy --prod --token "$VERCEL_TOKEN" --yes
+          else
+            vercel deploy --token "$VERCEL_TOKEN" --yes
+          fi

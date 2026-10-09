@@ -1,5 +1,8 @@
 # Déploiement MbeukImmig Pro
 
+> **Guide complet pas à pas :** [`GUIDE_DEPLOIEMENT_A_Z.md`](GUIDE_DEPLOIEMENT_A_Z.md)  
+> **CI/CD GitHub :** `.github/workflows/deploy-mbeukimmig.yml` + [`.github/DEPLOY_CONFIG_CHECKLIST.md`](../.github/DEPLOY_CONFIG_CHECKLIST.md)
+
 ## Prérequis
 
 - Projet [Supabase](https://supabase.com) (région UE recommandée pour RGPD)
