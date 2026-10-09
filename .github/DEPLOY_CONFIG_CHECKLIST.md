@@ -2,7 +2,9 @@
 
 Copier cette liste dans GitHub → **Settings → Secrets and variables → Actions**.
 
-## Variables
+**Tout peut aller dans l’onglet *Secrets*** : le workflow accepte `vars.*` **ou** `secrets.*` (priorité aux Variables si les deux existent).
+
+## Variables (optionnel — ou même noms dans Secrets)
 
 - [ ] `SUPABASE_PROJECT_REF`
 - [ ] `VITE_SUPABASE_URL`

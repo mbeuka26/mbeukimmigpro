@@ -94,7 +94,7 @@ jobs:
       - name: Vérifier SUPABASE_PROJECT_REF
         run: |
           if [ -z "$SUPABASE_PROJECT_REF" ]; then
-            echo "❌ Configurez Variables → SUPABASE_PROJECT_REF dans GitHub"
+            echo "❌ Configurez SUPABASE_PROJECT_REF (Secrets ou Variables GitHub)"
             exit 1
           fi
       - name: Secrets → Supabase
@@ -103,7 +103,7 @@ jobs:
       - name: Migrations → Supabase (db push)
         if: |
           (github.event_name == 'workflow_dispatch' && github.event.inputs.deploy_supabase_db == 'true') ||
-          (github.event_name == 'push' && vars.SUPABASE_DB_PUSH_ON_MAIN == 'true')
+          (github.event_name == 'push' && (vars.SUPABASE_DB_PUSH_ON_MAIN == 'true' || secrets.SUPABASE_DB_PUSH_ON_MAIN == 'true'))
         run: |
           supabase link --project-ref "$SUPABASE_PROJECT_REF" --yes
           supabase db push --linked
@@ -121,11 +121,11 @@ jobs:
     environment: production
     env:
       VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-      VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
-      VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
-      VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
+      VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID || secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID || secrets.VERCEL_PROJECT_ID }}
+      VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL || secrets.VITE_SUPABASE_URL }}
       VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
-      SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
+      SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL || secrets.VITE_SUPABASE_URL }}
       SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
     steps:
       - uses: actions/checkout@v4
