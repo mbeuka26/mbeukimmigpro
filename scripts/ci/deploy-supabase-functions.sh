@@ -9,6 +9,16 @@ cd "$ROOT"
 export SUPABASE_ACCESS_TOKEN
 supabase link --project-ref "$SUPABASE_PROJECT_REF" --yes 2>/dev/null || true
 
+SDK_SRC="MbeukSaaS-Integration-Kit/sdk/official/dist/index.js"
+VENDOR_DIR="supabase/functions/vendor/mbeuk-hub-sdk"
+if [[ ! -f "$SDK_SRC" ]]; then
+  echo "❌ SDK Hub introuvable: $SDK_SRC"
+  exit 1
+fi
+mkdir -p "$VENDOR_DIR"
+cp "$SDK_SRC" "$VENDOR_DIR/index.js"
+echo "✓ Vendor mbeuk-hub-sdk → $VENDOR_DIR/index.js"
+
 FUNCS_DIR="supabase/functions"
 if [[ ! -d "$FUNCS_DIR" ]]; then
   echo "❌ $FUNCS_DIR introuvable"
