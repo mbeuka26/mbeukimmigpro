@@ -68,12 +68,13 @@ jobs:
     environment: production
     env:
       SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-      SUPABASE_PROJECT_REF: ${{ vars.SUPABASE_PROJECT_REF }}
-      MBEUK_ENVIRONMENT: ${{ vars.MBEUK_ENVIRONMENT }}
-      MBEUK_HUB_URL: ${{ vars.MBEUK_HUB_URL }}
+      # Variables OU Secrets (les deux emplacements GitHub sont acceptés)
+      SUPABASE_PROJECT_REF: ${{ vars.SUPABASE_PROJECT_REF || secrets.SUPABASE_PROJECT_REF }}
+      MBEUK_ENVIRONMENT: ${{ vars.MBEUK_ENVIRONMENT || secrets.MBEUK_ENVIRONMENT }}
+      MBEUK_HUB_URL: ${{ vars.MBEUK_HUB_URL || secrets.MBEUK_HUB_URL }}
       MBEUK_HUB_API_KEY: ${{ secrets.MBEUK_HUB_API_KEY }}
-      MBEUK_PRODUCT_ID: ${{ vars.MBEUK_PRODUCT_ID }}
-      MBEUK_APPLICATION_ID: ${{ vars.MBEUK_APPLICATION_ID }}
+      MBEUK_PRODUCT_ID: ${{ vars.MBEUK_PRODUCT_ID || secrets.MBEUK_PRODUCT_ID }}
+      MBEUK_APPLICATION_ID: ${{ vars.MBEUK_APPLICATION_ID || secrets.MBEUK_APPLICATION_ID }}
       MBEUK_AUTH_BRIDGE_SECRET: ${{ secrets.MBEUK_AUTH_BRIDGE_SECRET }}
       SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
       BYOK_MASTER_KEY_BASE64: ${{ secrets.BYOK_MASTER_KEY_BASE64 }}
