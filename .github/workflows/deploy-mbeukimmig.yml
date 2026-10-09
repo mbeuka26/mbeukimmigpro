@@ -117,7 +117,8 @@ jobs:
     runs-on: ubuntu-latest
     if: |
       always() &&
-      (needs.supabase.result == 'success' || needs.supabase.result == 'skipped') &&
+      needs.test.result == 'success' &&
+      needs.supabase.result == 'success' &&
       (github.event_name == 'push' || github.event.inputs.deploy_vercel == 'true' || github.event.inputs.deploy_vercel_env == 'true')
     environment: production
     env:
