@@ -110,12 +110,15 @@ body {
 }
 
 .auth-portal__form {
-  display: grid;
+  display: none;
   gap: 0.85rem;
   max-width: 26rem;
 }
 
-.auth-portal__form[hidden],
+.auth-portal__form.is-active {
+  display: grid;
+}
+
 .auth-portal__tabs[hidden] {
   display: none !important;
 }
@@ -231,42 +234,4 @@ body {
 .auth-portal__scene {
   position: absolute;
   inset: 0;
-  display: grid;
-  place-items: center;
-  padding: 2rem;
-}
-
-.auth-portal__scene svg {
-  width: min(100%, 520px);
-  height: auto;
-  opacity: 0.92;
-}
-
-.auth-portal__plane {
-  transform-origin: 320px 180px;
-  animation: auth-float 5s ease-in-out infinite;
-}
-
-.auth-portal__globe {
-  transform-origin: 200px 200px;
-  animation: auth-spin 48s linear infinite;
-}
-
-@keyframes auth-float {
-  50% {
-    transform: translate(8px, -10px);
-  }
-}
-
-@keyframes auth-spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .auth-portal__plane,
-  .auth-portal__globe {
-    animation: none;
-  }
 }

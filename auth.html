@@ -6,7 +6,8 @@
   <title>MbeukImmig Pro — Connexion</title>
   <link rel="manifest" href="./manifest.json">
   <meta name="theme-color" content="#071526">
-  <link rel="stylesheet" href="./css/auth-portal.css">
+  <link rel="stylesheet" href="./css/auth-portal.css?v=2">
+  <link rel="stylesheet" href="./css/auth-scene-3d.css?v=2">
   <link rel="stylesheet" href="./src/mbeuk-gate/mbeuk-hub-gate.css">
 </head>
 <body>
@@ -21,7 +22,7 @@
         <button type="button" class="auth-portal__tab" id="tab-login" role="tab" aria-selected="true">Se connecter</button>
         <button type="button" class="auth-portal__tab" id="tab-register" role="tab" aria-selected="false">Créer un compte</button>
       </div>
-      <form id="login-form" class="auth-portal__form" data-auth-panel="login" novalidate>
+      <form id="login-form" class="auth-portal__form is-active" data-auth-panel="login" novalidate>
         <label class="auth-portal__field">Email
           <input name="email" type="email" autocomplete="username" required>
         </label>
@@ -31,7 +32,7 @@
         <button type="submit" class="auth-portal__primary" id="login-submit">Connexion</button>
         <button type="button" class="auth-portal__link" id="btn-forgot">Mot de passe perdu</button>
       </form>
-      <form id="register-form" class="auth-portal__form" data-auth-panel="register" hidden novalidate>
+      <form id="register-form" class="auth-portal__form" data-auth-panel="register" hidden novalidate aria-labelledby="tab-register">
         <label class="auth-portal__field">Nom complet
           <input name="full_name" type="text" autocomplete="name" required>
         </label>
@@ -62,6 +63,6 @@
       <div class="auth-portal__scene" id="immigration-scene"></div>
     </div>
   </div>
-  <script type="module" src="./js/platform/auth-boot.js"></script>
+  <script type="module" src="./js/platform/auth-boot.js?v=2"></script>
 </body>
 </html>

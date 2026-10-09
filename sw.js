@@ -1,5 +1,5 @@
 // MbeukImmig Pro — PWA offline (app shell)
-const CACHE_NAME = 'mbeukimmig-v3.1';
+const CACHE_NAME = 'mbeukimmig-v3.2';
 
 const APP_SHELL = [
   './',
@@ -11,7 +11,9 @@ const APP_SHELL = [
   './admin.html',
   './access.html',
   './css/auth-portal.css',
+  './css/auth-scene-3d.css',
   './css/app-shell.css',
+  './js/platform/auth-ui.js',
   './manifest.json',
   './js/eligibility-rules-v1.js',
   './js/platform/api.js',
