@@ -14,6 +14,11 @@ fi
 export VERCEL_ORG_ID="${VERCEL_ORG_ID:-}"
 export VERCEL_PROJECT_ID="${VERCEL_PROJECT_ID:-}"
 
+VERCEL_FLAGS=(--token "$VERCEL_TOKEN" --yes --force --no-sensitive)
+if [[ -n "${VERCEL_PROJECT_ID:-}" ]]; then
+  VERCEL_FLAGS+=(--project "$VERCEL_PROJECT_ID")
+fi
+
 # Uniquement variables publiques / build — jamais de clés Hub ou service_role
 declare -A ENV_VARS=(
   [VITE_SUPABASE_URL]="${VITE_SUPABASE_URL:-${SUPABASE_URL:-}}"
@@ -24,11 +29,11 @@ upsert_env() {
   local key="$1"
   local val="$2"
   local target="$3"
-  [[ -z "$val" ]] && return 0
-  echo "→ vercel env rm $key $target (si existe)"
-  vercel env rm "$key" "$target" --yes --token "$VERCEL_TOKEN" 2>/dev/null || true
+  [[ -z "$val" ]] && { echo "⚠ skip $key ($target): valeur vide"; return 0; }
+  echo "→ vercel env rm $key $target"
+  vercel env rm "$key" "$target" "${VERCEL_FLAGS[@]}" 2>/dev/null || true
   echo "→ vercel env add $key $target"
-  printf '%s' "$val" | vercel env add "$key" "$target" --token "$VERCEL_TOKEN"
+  vercel env add "$key" "$target" "${VERCEL_FLAGS[@]}" --value "$val"
 }
 
 for key in "${!ENV_VARS[@]}"; do

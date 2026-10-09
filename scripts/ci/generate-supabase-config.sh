@@ -5,6 +5,10 @@ ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 URL="${VITE_SUPABASE_URL:-${SUPABASE_URL:-}}"
 ANON="${VITE_SUPABASE_ANON_KEY:-${SUPABASE_ANON_KEY:-}}"
 if [[ -z "$URL" || -z "$ANON" ]]; then
+  if [[ -f "$ROOT/js/supabase-config.js" ]]; then
+    echo "⚠ Variables build absentes — réutilisation de js/supabase-config.js existant"
+    exit 0
+  fi
   echo "❌ VITE_SUPABASE_URL et VITE_SUPABASE_ANON_KEY requis pour le build frontend"
   exit 1
 fi
