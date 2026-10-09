@@ -18,7 +18,7 @@ if [[ "$CODE" -eq 0 ]]; then
   exit 0
 fi
 
-if echo "$OUT" | rg -q 'already exists|duplicate key|SQLSTATE 42P07'; then
+if echo "$OUT" | grep -qE 'already exists|duplicate key|SQLSTATE 42P07'; then
   echo "⚠ Schéma partiellement présent — tentative migration repair puis re-push"
   for rev in 20261009000000 20261009010000 20261009020000 20261009030000; do
     supabase migration repair "$rev" --status applied --linked 2>/dev/null || true
