@@ -1,0 +1,95 @@
+<section id="assistant-ia">
+  <div class="mbeuk-wrap">
+    <div class="section-title" style="text-align:center;margin-bottom:2rem">
+      <div class="section-tag">MbeukImmig Pro</div>
+      <h2>Assistant IA &amp; compte Hub</h2>
+      <p style="color:var(--text-muted);margin-top:0.5rem">Projets, recherche documentaire, Brain AI (BYOK) et admissibilité FR/CA — données sur Supabase.</p>
+    </div>
+    <div class="mbeuk-card" id="authCard">
+      <h3>Compte Hub Central</h3>
+      <p class="mbeuk-msg">Session Hub ≠ entitlement PRO. Licence gérée par le Hub Mbeuk.</p>
+      <form id="login-form">
+        <label for="email">Email</label>
+        <input id="email" name="email" type="email" autocomplete="username" required>
+        <label for="password">Mot de passe</label>
+        <input id="password" name="password" type="password" autocomplete="current-password" required>
+        <button type="submit">Se connecter</button>
+      </form>
+      <form id="register-form" style="margin-top:1rem">
+        <label for="regEmail">Email (inscription)</label>
+        <input id="regEmail" name="email" type="email" autocomplete="email" required>
+        <label for="regPassword">Mot de passe</label>
+        <input id="regPassword" name="password" type="password" autocomplete="new-password" required>
+        <label for="regName">Nom affiché</label>
+        <input id="regName" name="display_name" type="text" autocomplete="name">
+        <button type="submit" class="mbeuk-btn-secondary">Créer un compte</button>
+      </form>
+      <label for="promo-code">Code promo (optionnel)</label>
+      <input id="promo-code" name="promo_code" type="text" autocomplete="off">
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
+        <button type="button" data-mbeuk-checkout>Acheter une licence</button>
+        <button type="button" class="mbeuk-btn-secondary" data-mbeuk-trial>Essai gratuit</button>
+        <button type="button" class="mbeuk-btn-secondary" data-mbeuk-logout>Déconnexion</button>
+      </div>
+      <p class="mbeuk-msg" id="authMsg"></p>
+    </div>
+    <div class="mbeuk-grid">
+      <div class="mbeuk-card">
+        <h3>Projet d'immigration</h3>
+        <label>Titre</label>
+        <input id="projTitle" placeholder="Mon projet Canada">
+        <label>Pays (ISO)</label>
+        <input id="projCountry" placeholder="CA" maxlength="2">
+        <label>Voie</label>
+        <input id="projPathway" placeholder="express_entry">
+        <button type="button" id="btnCreateProject">Créer le projet</button>
+        <ul id="projectList" class="mbeuk-msg"></ul>
+      </div>
+      <div class="mbeuk-card">
+        <h3 id="searchTitle">Recherche (RAG)</h3>
+        <input id="searchQuery" placeholder="Ex. permis de travail">
+        <input id="searchCountry" placeholder="Pays (FR, CA)" maxlength="2">
+        <button type="button" id="btnSearch">Rechercher</button>
+        <div id="searchResults"></div>
+      </div>
+    </div>
+    <div class="mbeuk-card" style="margin-top:1rem">
+      <h3 id="brainTitle">Brain AI</h3>
+      <label>Mode</label>
+      <select id="aiMode">
+        <option value="central">IA centrale MbeukImmig</option>
+        <option value="byok">Clé API personnelle (BYOK)</option>
+      </select>
+      <label>Fournisseur</label>
+      <select id="aiProvider">
+        <option value="openai">OpenAI</option>
+        <option value="anthropic">Anthropic</option>
+        <option value="google">Google Gemini</option>
+        <option value="xai">xAI Grok</option>
+        <option value="openrouter">OpenRouter</option>
+        <option value="mistral">Mistral AI</option>
+      </select>
+      <p class="mbeuk-msg"><a id="consoleLink" href="#" target="_blank" rel="noopener" style="color:var(--gold)">Console fournisseur</a></p>
+      <label>Modèle</label>
+      <input id="aiModel" placeholder="gpt-4o-mini">
+      <label>Clé API (BYOK)</label>
+      <input id="aiKey" type="password" autocomplete="off">
+      <button type="button" id="btnSaveKey">Enregistrer clé</button>
+      <button type="button" class="mbeuk-btn-secondary" id="btnTestKey">Tester connexion</button>
+      <button type="button" class="mbeuk-btn-secondary" id="btnRevokeKey">Révoquer clé</button>
+      <p class="mbeuk-msg" id="brainStatus"></p>
+      <label>Question</label>
+      <textarea id="chatInput" rows="3"></textarea>
+      <button type="button" id="btnAsk">Envoyer</button>
+      <pre id="chatOut" class="mbeuk-msg" style="white-space:pre-wrap;margin-top:10px"></pre>
+    </div>
+    <div class="mbeuk-card">
+      <h3>Agent — admissibilité v1 (FR/CA)</h3>
+      <button type="button" id="btnEligibility">Lancer vérification déterministe</button>
+      <pre id="eligOut" class="mbeuk-msg"></pre>
+    </div>
+    <p class="mbeuk-msg" style="text-align:center;margin-top:1.5rem">
+      Information indicative — ne garantit pas l'obtention d'un visa.
+    </p>
+  </div>
+</section>

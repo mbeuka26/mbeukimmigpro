@@ -2,11 +2,11 @@
   "name": "MbeukImmig Pro",
   "short_name": "MbeukImmig",
   "description": "Orientation immigration, procédures et outils candidature (CV, lettre)",
-  "start_url": "./index.html",
+  "start_url": "./platform.html",
   "display": "standalone",
   "orientation": "portrait-primary",
-  "background_color": "#0d0d14",
-  "theme_color": "#0d0d14",
+  "background_color": "#0a1628",
+  "theme_color": "#0a1628",
   "lang": "fr",
   "scope": "./",
   "categories": ["education", "travel", "productivity"],
@@ -29,7 +29,7 @@
       "name": "Accueil",
       "short_name": "Accueil",
       "description": "Ouvrir MbeukImmig Pro",
-      "url": "./index.html",
+      "url": "./platform.html",
       "icons": [{ "src": "icons/icon-512.png", "sizes": "512x512" }]
     }
   ]

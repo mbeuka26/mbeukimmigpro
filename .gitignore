@@ -3,3 +3,4 @@
 js/supabase-config.js
 node_modules/
 .supabase/
+supabase/.temp/
