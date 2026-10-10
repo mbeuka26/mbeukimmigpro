@@ -69,12 +69,15 @@ export async function runKitHealthCheck(options = {}) {
     addIssue(issues, "HUB_URL_MISSING", "URL Edge/Hub manquante (VITE_SUPABASE_URL)");
   } else if (options.skipLiveHub !== true) {
     try {
-      const response = await fetch(`${functionsUrl}/hub-diagnostics`, { method: "GET" });
-      if (response.status === 404 || response.status >= 500) {
-        addIssue(issues, "HUB_UNREACHABLE", `Route Hub injoignable (HTTP ${response.status})`);
+      const response = await fetch(`${functionsUrl}/hub-ping`, {
+        method: "GET",
+        headers: { apikey: options.anonKey || "" },
+      });
+      if (!response.ok && response.status !== 401) {
+        addIssue(issues, "HUB_UNREACHABLE", `Edge Supabase injoignable (HTTP ${response.status})`);
       }
     } catch {
-      addIssue(issues, "HUB_UNREACHABLE", "Route Hub injoignable");
+      addIssue(issues, "HUB_UNREACHABLE", "Edge Supabase injoignable");
     }
   }
   const ok = issues.length === 0;

@@ -30,10 +30,14 @@ export async function ensureMbeukPwa() {
   if (existing.length > 0) {
     return { registered: true, existing: true, scope: existing[0].scope };
   }
-  try {
-    const reg = await navigator.serviceWorker.register("/mbeuk-sw.js", { scope: "/" });
-    return { registered: true, existing: false, scope: reg.scope };
-  } catch (error) {
-    return { registered: false, reason: error?.message || "sw_register_failed" };
+  const swCandidates = ["./service-worker.js", "/service-worker.js", "./sw.js", "/mbeuk-sw.js"];
+  for (const url of swCandidates) {
+    try {
+      const reg = await navigator.serviceWorker.register(url, { scope: "./" });
+      return { registered: true, existing: false, scope: reg.scope, script: url };
+    } catch {
+      // essayer le chemin suivant
+    }
   }
+  return { registered: false, reason: "sw_register_failed" };
 }

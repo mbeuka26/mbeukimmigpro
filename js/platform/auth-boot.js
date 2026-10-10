@@ -15,6 +15,21 @@ function feedback(payload) {
     + (payload.type === 'success' ? ' auth-portal__feedback--success' : '');
 }
 
+function explainBootError(err) {
+  const msg = String(err?.message || err || '');
+  if (/functionsUrl|anonKey|requis/i.test(msg)) {
+    return 'Configuration Supabase incomplète sur le frontend. Vérifiez VITE_SUPABASE_URL et VITE_SUPABASE_ANON_KEY (Vercel).';
+  }
+  if (/Failed to fetch|NetworkError|NETWORK/i.test(msg)) {
+    return 'Réseau ou Edge Functions injoignables. Vérifiez votre connexion et que les fonctions Supabase sont déployées.';
+  }
+  if (/HUB_ENV|Hub incomplète|503/i.test(msg)) {
+    return 'Hub Central non configuré côté serveur. Vérifiez les secrets Supabase (MBEUK_HUB_*).';
+  }
+  if (msg) return msg;
+  return 'Connexion Hub indisponible. Réessayez.';
+}
+
 async function bootHub() {
   const { bootMbeukHubGate } = await import('../../src/mbeuk-gate/boot.js');
   const { GateStatus } = await import('../../src/mbeuk-gate/mbeuk-hub-gate.js');
@@ -27,12 +42,18 @@ async function bootHub() {
   } catch {
     feedback({
       type: 'error',
-      text: 'Configuration Supabase manquante (js/supabase-config.js).',
+      text: 'Configuration Supabase manquante (js/supabase-config.js). Relancez le déploiement Vercel.',
     });
     return;
   }
 
-  if (!configMod?.SUPABASE_URL || !configMod?.SUPABASE_ANON_KEY) return;
+  if (!configMod?.SUPABASE_URL || !configMod?.SUPABASE_ANON_KEY) {
+    feedback({
+      type: 'error',
+      text: 'URL ou clé anon Supabase absente. Configurez VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY sur Vercel.',
+    });
+    return;
+  }
 
   const registerForm = document.getElementById('register-form');
   const loginForm = document.getElementById('login-form');
@@ -47,6 +68,7 @@ async function bootHub() {
     pageRouting: true,
     protectedRoot: '#auth-root',
     skipLiveHub: false,
+    silentHealth: true,
     feedback,
   });
 
@@ -86,9 +108,11 @@ async function bootHub() {
       globalThis.location.replace(ROUTES.app);
     }
   });
+
+  feedback({ type: 'success', text: '' });
 }
 
 bootHub().catch((err) => {
   console.error('[auth-boot]', err);
-  feedback({ type: 'error', text: 'Connexion Hub indisponible. Réessayez.' });
+  feedback({ type: 'error', text: explainBootError(err) });
 });

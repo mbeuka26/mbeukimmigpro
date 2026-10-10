@@ -5,7 +5,7 @@
 import { MbeukHubGate } from "./mbeuk-hub-gate.js";
 import { ensureMbeukPwa } from "./pwa.js";
 import { runKitHealthCheck } from "./health-check.js";
-import "./mbeuk-hub-gate.css";
+/** Styles : lier mbeuk-hub-gate.css dans le HTML (modules vanilla sans bundler). */
 
 export async function bootMbeukHubGate(options = {}) {
   const env = (typeof import.meta !== "undefined" && import.meta.env) || {};
@@ -38,12 +38,17 @@ export async function bootMbeukHubGate(options = {}) {
     });
   }
   await ensureMbeukPwa();
-  await runKitHealthCheck({
-    functionsUrl,
-    gateLoaded: true,
-    skipLiveHub: options.skipLiveHub === true,
-    silent: options.silentHealth === true,
-  });
+  try {
+    await runKitHealthCheck({
+      functionsUrl,
+      anonKey,
+      gateLoaded: true,
+      skipLiveHub: options.skipLiveHub === true,
+      silent: options.silentHealth === true,
+    });
+  } catch (healthErr) {
+    console.warn("[MbeukHubGate] health check non bloquant", healthErr);
+  }
   if (typeof window !== "undefined") window.__mbeukGate = gate;
   return gate;
 }
