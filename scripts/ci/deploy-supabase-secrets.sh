@@ -21,7 +21,7 @@ fi
 supabase link --project-ref "$SUPABASE_PROJECT_REF" --yes 2>/dev/null || true
 
 # Secrets consommés par les Edge Functions (serveur uniquement)
-# Origines frontend autorisées (CORS Edge) — séparer par des virgules si plusieurs domaines.
+# Origines frontend (CORS Edge, secret APP_URL) — valeurs séparées par des virgules.
 APP_URL_COMBINED="${APP_URL:-}"
 if [[ -z "$APP_URL_COMBINED" && -n "${PUBLIC_APP_URL:-}" ]]; then
   APP_URL_COMBINED="$PUBLIC_APP_URL"
