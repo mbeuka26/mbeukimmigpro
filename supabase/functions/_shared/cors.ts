@@ -10,33 +10,37 @@ function parseAllowedOrigins(): string[] {
   return raw.split(',').map((s) => s.trim()).filter(Boolean);
 }
 
-/** En-têtes CORS par défaut — restreint à APP_URL en production si défini. */
-export const corsHeaders: Record<string, string> = (() => {
-  const allowed = parseAllowedOrigins();
-  const isProd = Deno.env.get('MBEUK_ENVIRONMENT') === 'production';
-  const origin = allowed.length ? allowed[0] : (isProd ? 'null' : '*');
-  return {
-    'Access-Control-Allow-Origin': origin,
-    ...(allowed.length ? { Vary: 'Origin' } : {}),
-    ...BASE_HEADERS,
-  };
-})();
-
-/** CORS dynamique selon l'en-tête Origin (préféré pour les handlers). */
-export function corsHeadersFor(req: Request): Record<string, string> {
-  const allowed = parseAllowedOrigins();
-  const origin = req.headers.get('Origin');
-  const isProd = Deno.env.get('MBEUK_ENVIRONMENT') === 'production';
-
-  if (!allowed.length) {
-    return isProd
-      ? { 'Access-Control-Allow-Origin': 'null', Vary: 'Origin', ...BASE_HEADERS }
-      : { 'Access-Control-Allow-Origin': '*', ...BASE_HEADERS };
-  }
-
-  if (origin && allowed.includes(origin)) {
-    return { 'Access-Control-Allow-Origin': origin, Vary: 'Origin', ...BASE_HEADERS };
-  }
-
-  return { 'Access-Control-Allow-Origin': allowed[0], Vary: 'Origin', ...BASE_HEADERS };
+function isLocalOrigin(origin: string): boolean {
+  return /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(origin);
 }
+
+/** Construit les en-têtes CORS (preflight + réponses JSON). */
+export function buildCorsHeaders(origin: string | null): Record<string, string> {
+  const allowed = parseAllowedOrigins();
+  const isProd = Deno.env.get('MBEUK_ENVIRONMENT') === 'production';
+
+  if (origin) {
+    if (allowed.length && allowed.includes(origin)) {
+      return { 'Access-Control-Allow-Origin': origin, Vary: 'Origin', ...BASE_HEADERS };
+    }
+    if (!allowed.length) {
+      if (!isProd || origin.startsWith('https://') || isLocalOrigin(origin)) {
+        return { 'Access-Control-Allow-Origin': origin, Vary: 'Origin', ...BASE_HEADERS };
+      }
+    }
+  }
+
+  if (allowed.length) {
+    return { 'Access-Control-Allow-Origin': allowed[0], Vary: 'Origin', ...BASE_HEADERS };
+  }
+
+  return { 'Access-Control-Allow-Origin': '*', ...BASE_HEADERS };
+}
+
+/** CORS dynamique selon l'en-tête Origin (handlers Edge). */
+export function corsHeadersFor(req: Request): Record<string, string> {
+  return buildCorsHeaders(req.headers.get('Origin'));
+}
+
+/** Fallback module (sans Origin) — évite `null` qui casse le navigateur. */
+export const corsHeaders: Record<string, string> = buildCorsHeaders(null);

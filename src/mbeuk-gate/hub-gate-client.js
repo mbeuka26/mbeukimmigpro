@@ -83,7 +83,13 @@ export class HubGateClient {
         ...(method === "GET" ? {} : { body: JSON.stringify(body) }),
       });
     } catch (error) {
-      throw new HubGateError(NETWORK_ERROR_MESSAGE, "NETWORK_ERROR", 0, error);
+      const hint = error?.message ? ` (${error.message})` : "";
+      throw new HubGateError(
+        `${NETWORK_ERROR_MESSAGE}${hint}`,
+        "NETWORK_ERROR",
+        0,
+        error,
+      );
     }
     const payload = await response.json().catch(() => ({}));
     if (!response.ok) {

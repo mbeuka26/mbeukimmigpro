@@ -1,12 +1,13 @@
 import { getTool } from '../../../shared/agent/tools.ts';
-import { corsHeaders, errorResponse, jsonResponse } from '../_shared/http.ts';
+import { corsHeadersFor } from '../_shared/cors.ts';
+import { errorResponse, jsonResponse } from '../_shared/http.ts';
 import { requireUser } from '../_shared/supabase.ts';
 
 const MAX_STEPS = 6;
 const MAX_TOOL_CALLS = 8;
 
 Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeadersFor(req) });
   try {
     const { user } = await requireUser(req);
     const { toolName, input, projectId } = await req.json();

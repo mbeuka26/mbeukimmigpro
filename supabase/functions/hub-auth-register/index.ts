@@ -1,5 +1,5 @@
 // hub-auth-register — Inscription identité Hub (autorité) + profil métier SaaS local.
-import { corsHeaders } from '../_shared/cors.ts';
+import { corsHeadersFor } from '../_shared/cors.ts';
 import { checkRateLimit } from '../_shared/rate-limit.ts';
 import {
   ensureHubConfigured,
@@ -66,7 +66,8 @@ function hubErrorResponse(safe: ReturnType<typeof toSafeHubError>, step: string,
 }
 
 Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeadersFor(req) });
+  const respond = (body: unknown, status = 200) => jsonResponse(body, status, req);
   try {
     ensureHubConfigured();
     ensureBridgeConfigured();
@@ -76,11 +77,11 @@ Deno.serve(async (req) => {
 
     const { email, password, full_name, phone, device_identifier } = await req.json();
     if (!email || !password || String(password).length < 8) {
-      return jsonResponse({ error: 'Email et mot de passe (8+ caractères) requis.' }, 400);
+      return respond({ error: 'Email et mot de passe (8+ caractères) requis.' }, 400);
     }
 
     const rl = await checkRateLimit(supabaseAdmin, `hub-auth-register:${email.toLowerCase()}`);
-    if (!rl.allowed) return jsonResponse({ error: 'Trop de tentatives.' }, 429);
+    if (!rl.allowed) return respond({ error: 'Trop de tentatives.' }, 429);
 
     const hub = getHubClient();
     const productId = Deno.env.get('MBEUK_PRODUCT_ID')!;
@@ -109,7 +110,7 @@ Deno.serve(async (req) => {
       });
     } catch (registerErr) {
       if (isHubSchemaAccessTypeError(registerErr)) {
-        return jsonResponse({ error: hubSchemaAccessTypeMessage(), code: 'HUB_SCHEMA_OUTDATED' }, 503);
+        return respond({ error: hubSchemaAccessTypeMessage(), code: 'HUB_SCHEMA_OUTDATED' }, 503);
       }
       if (!isDuplicateHubAccount(registerErr)) {
         return hubErrorResponse(toSafeHubError(registerErr), 'hub_register_or_login');
@@ -150,7 +151,7 @@ Deno.serve(async (req) => {
 
     const bridge = await createBridgeSupabaseSession(supabaseAdmin, hubUserId, hubEmail);
 
-    return jsonResponse({
+    return respond({
       ok: true,
       recovered_existing: recoveredExisting,
       hub_user_id: hubUserId,
@@ -172,10 +173,10 @@ Deno.serve(async (req) => {
       return jsonResponse({ error: hubSchemaAccessTypeMessage(), code: 'HUB_SCHEMA_OUTDATED' }, 503);
     }
     if (safe.message.includes('MBEUK_AUTH_BRIDGE_SECRET') || safe.message.includes('SUPABASE_AUTH_BRIDGE_SECRET')) {
-      return jsonResponse({ error: safe.message, code: 'BRIDGE_SECRET_MISSING' }, 503);
+      return respond({ error: safe.message, code: 'BRIDGE_SECRET_MISSING' }, 503);
     }
     if (safe.message.includes('service_role') || safe.message.includes('MBEUK_SERVICE_ROLE_KEY')) {
-      return jsonResponse({ error: safe.message, code: 'SERVICE_ROLE_MISSING' }, 503);
+      return respond({ error: safe.message, code: 'SERVICE_ROLE_MISSING' }, 503);
     }
     const status = isSecurityDenial(safe.code) ? 403 : (safe.status || 502);
     return hubErrorResponse(safe, 'hub_auth_register', status);

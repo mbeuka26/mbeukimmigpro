@@ -1,5 +1,5 @@
 // hub-auth-login — Connexion identité Hub (autorité) + sync entitlement + pont RLS métier.
-import { corsHeaders } from '../_shared/cors.ts';
+import { corsHeadersFor } from '../_shared/cors.ts';
 import { checkRateLimit } from '../_shared/rate-limit.ts';
 import {
   ensureHubConfigured,
@@ -16,7 +16,7 @@ import { createSupabaseAdmin } from '../_shared/supabase-env.ts';
 import { hubLoginWithDeviceFallback } from '../_shared/hub-auth-helpers.ts';
 
 Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeadersFor(req) });
   try {
     ensureHubConfigured();
     ensureBridgeConfigured();

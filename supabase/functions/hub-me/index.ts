@@ -1,6 +1,6 @@
 // hub-me — Profil métier SaaS + entitlement (Hub = autorité, cache rafraîchi à chaque appel).
 import { createSupabaseAdmin } from '../_shared/supabase-env.ts';
-import { corsHeaders } from '../_shared/cors.ts';
+import { corsHeaders, corsHeadersFor } from '../_shared/cors.ts';
 import { HubAuthError, requireHubAuth } from '../_shared/hub-session-auth.ts';
 import {
   ensureHubConfigured,
@@ -10,7 +10,7 @@ import {
 import { applyHubLicenseToUser } from '../_shared/subscription-sync.ts';
 
 Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeadersFor(req) });
   try {
     const supabaseAdmin = createSupabaseAdmin();
     const ctx = await requireHubAuth(req, supabaseAdmin);

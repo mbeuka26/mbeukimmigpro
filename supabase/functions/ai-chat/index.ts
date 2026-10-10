@@ -1,6 +1,7 @@
 import { decryptApiKey } from '../../../shared/crypto/byok.ts';
 import { getProvider } from '../../../shared/llm/registry.ts';
-import { corsHeaders, errorResponse, jsonResponse } from '../_shared/http.ts';
+import { corsHeadersFor } from '../_shared/cors.ts';
+import { errorResponse, jsonResponse } from '../_shared/http.ts';
 import { requireUser, serviceClient } from '../_shared/supabase.ts';
 
 function centralKey(providerId: string): string | undefined {
@@ -17,7 +18,7 @@ function centralKey(providerId: string): string | undefined {
 }
 
 Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeadersFor(req) });
   try {
     const { user } = await requireUser(req);
     const { messages, providerId, modelId, allowCentralFallback } = await req.json();

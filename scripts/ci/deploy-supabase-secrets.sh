@@ -21,8 +21,15 @@ fi
 supabase link --project-ref "$SUPABASE_PROJECT_REF" --yes 2>/dev/null || true
 
 # Secrets consommés par les Edge Functions (serveur uniquement)
+# Origines frontend autorisées (CORS Edge) — séparer par des virgules si plusieurs domaines.
+APP_URL_COMBINED="${APP_URL:-}"
+if [[ -z "$APP_URL_COMBINED" && -n "${PUBLIC_APP_URL:-}" ]]; then
+  APP_URL_COMBINED="$PUBLIC_APP_URL"
+fi
+
 declare -A SECRETS=(
   [MBEUK_ENVIRONMENT]="${MBEUK_ENVIRONMENT:-production}"
+  [APP_URL]="${APP_URL_COMBINED}"
   [MBEUK_HUB_URL]="${MBEUK_HUB_URL:-}"
   [MBEUK_HUB_API_KEY]="${MBEUK_HUB_API_KEY:-}"
   [MBEUK_PRODUCT_ID]="${MBEUK_PRODUCT_ID:-}"

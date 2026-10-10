@@ -1,8 +1,9 @@
-import { corsHeaders, errorResponse, jsonResponse } from '../_shared/http.ts';
+import { corsHeadersFor } from '../_shared/cors.ts';
+import { errorResponse, jsonResponse } from '../_shared/http.ts';
 import { isAdmin, requireUser, serviceClient } from '../_shared/supabase.ts';
 
 Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeadersFor(req) });
   try {
     const { user } = await requireUser(req);
     if (!isAdmin(user)) return errorResponse('FORBIDDEN', 'Admin requis.', 403);

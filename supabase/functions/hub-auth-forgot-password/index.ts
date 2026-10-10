@@ -1,12 +1,12 @@
 // hub-auth-forgot-password — Mot de passe oublié via Hub Central.
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { createSupabaseAdmin } from '../_shared/supabase-env.ts';
-import { corsHeaders } from '../_shared/cors.ts';
+import { corsHeaders, corsHeadersFor } from '../_shared/cors.ts';
 import { checkRateLimit } from '../_shared/rate-limit.ts';
 import { ensureHubConfigured, getHubClient, toSafeHubError, isSecurityDenial } from '../_shared/hub-service.ts';
 
 Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeadersFor(req) });
   try {
     ensureHubConfigured();
     const supabaseAdmin = createSupabaseAdmin();

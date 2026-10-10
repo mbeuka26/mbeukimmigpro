@@ -1,13 +1,14 @@
-import { corsHeaders } from './cors.ts';
+import { buildCorsHeaders, corsHeaders } from './cors.ts';
 import { assertServiceRoleConfigured } from './supabase-env.ts';
 
 export { assertServiceRoleConfigured };
 
-export function jsonResponse(body: unknown, status = 200): Response {
+export function jsonResponse(body: unknown, status = 200, req?: Request): Response {
+  const cors = req ? buildCorsHeaders(req.headers.get('Origin')) : corsHeaders;
   try {
     return new Response(JSON.stringify(body), {
       status,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      headers: { ...cors, 'Content-Type': 'application/json' },
     });
   } catch (e) {
     return new Response(JSON.stringify({
@@ -16,7 +17,7 @@ export function jsonResponse(body: unknown, status = 200): Response {
       detail: e instanceof Error ? e.message : String(e),
     }), {
       status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      headers: { ...cors, 'Content-Type': 'application/json' },
     });
   }
 }

@@ -1,5 +1,5 @@
 // hub-diagnostics — Diagnostic d'intégration Hub Central ↔ SaaS (admin uniquement).
-import { corsHeaders } from '../_shared/cors.ts';
+import { corsHeaders, corsHeadersFor } from '../_shared/cors.ts';
 import { createSupabaseAdmin } from '../_shared/supabase-env.ts';
 import {
   ensureHubConfigured,
@@ -38,7 +38,7 @@ function maskId(value: string | undefined | null): string | null {
 }
 
 Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeadersFor(req) });
 
   const correlation_id = crypto.randomUUID();
 

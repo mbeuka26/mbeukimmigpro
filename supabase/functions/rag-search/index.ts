@@ -1,8 +1,9 @@
-import { corsHeaders, errorResponse, jsonResponse } from '../_shared/http.ts';
+import { corsHeadersFor } from '../_shared/cors.ts';
+import { errorResponse, jsonResponse } from '../_shared/http.ts';
 import { requireUser, serviceClient } from '../_shared/supabase.ts';
 
 Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeadersFor(req) });
   try {
     await requireUser(req);
     const { query, countryCode, limit = 8 } = await req.json();

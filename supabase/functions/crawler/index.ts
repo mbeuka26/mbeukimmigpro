@@ -1,5 +1,6 @@
 import { chunkText, extractTextFromHtml, fingerprintContent } from '../../../shared/rag/chunk.ts';
-import { corsHeaders, errorResponse, jsonResponse } from '../_shared/http.ts';
+import { corsHeadersFor } from '../_shared/cors.ts';
+import { errorResponse, jsonResponse } from '../_shared/http.ts';
 import { isAdmin, requireUser, serviceClient } from '../_shared/supabase.ts';
 
 async function authorized(req: Request, user?: { app_metadata?: Record<string, unknown> }) {
@@ -10,7 +11,7 @@ async function authorized(req: Request, user?: { app_metadata?: Record<string, u
 }
 
 Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeadersFor(req) });
   try {
     let user;
     try {
