@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Génère js/supabase-config.js pour le build Vercel (clés publiques).
+# Génère js/supabase-config.js pour le build Vercel (clés publiques anon).
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 URL="${VITE_SUPABASE_URL:-${SUPABASE_URL:-}}"
