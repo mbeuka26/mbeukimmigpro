@@ -170,7 +170,7 @@ Deno.serve(async (req) => {
   } catch (e) {
     const safe = toSafeHubError(e);
     if (isHubSchemaAccessTypeError(e)) {
-      return jsonResponse({ error: hubSchemaAccessTypeMessage(), code: 'HUB_SCHEMA_OUTDATED' }, 503);
+      return respond({ error: hubSchemaAccessTypeMessage(), code: 'HUB_SCHEMA_OUTDATED' }, 503);
     }
     if (safe.message.includes('MBEUK_AUTH_BRIDGE_SECRET') || safe.message.includes('SUPABASE_AUTH_BRIDGE_SECRET')) {
       return respond({ error: safe.message, code: 'BRIDGE_SECRET_MISSING' }, 503);
