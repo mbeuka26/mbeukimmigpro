@@ -4,14 +4,24 @@ const BASE_HEADERS = {
   'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
 };
 
+function normalizeOrigin(value: string): string {
+  return value.trim().replace(/\/+$/, '').toLowerCase();
+}
+
 function parseAllowedOrigins(): string[] {
   const raw = Deno.env.get('APP_URL')?.trim();
   if (!raw) return [];
-  return raw.split(',').map((s) => s.trim()).filter(Boolean);
+  return raw.split(',').map((s) => normalizeOrigin(s)).filter(Boolean);
 }
 
 function isLocalOrigin(origin: string): boolean {
   return /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(origin);
+}
+
+function originAllowed(origin: string | null, allowed: string[]): boolean {
+  if (!origin) return false;
+  const norm = normalizeOrigin(origin);
+  return allowed.some((a) => a === norm);
 }
 
 /** Construit les en-têtes CORS (preflight + réponses JSON). */
@@ -20,7 +30,7 @@ export function buildCorsHeaders(origin: string | null): Record<string, string> 
   const isProd = Deno.env.get('MBEUK_ENVIRONMENT') === 'production';
 
   if (origin) {
-    if (allowed.length && allowed.includes(origin)) {
+    if (allowed.length && originAllowed(origin, allowed)) {
       return { 'Access-Control-Allow-Origin': origin, Vary: 'Origin', ...BASE_HEADERS };
     }
     if (!allowed.length) {
@@ -31,7 +41,8 @@ export function buildCorsHeaders(origin: string | null): Record<string, string> 
   }
 
   if (allowed.length) {
-    return { 'Access-Control-Allow-Origin': allowed[0], Vary: 'Origin', ...BASE_HEADERS };
+    const first = Deno.env.get('APP_URL')!.split(',')[0].trim().replace(/\/+$/, '');
+    return { 'Access-Control-Allow-Origin': first, Vary: 'Origin', ...BASE_HEADERS };
   }
 
   return { 'Access-Control-Allow-Origin': '*', ...BASE_HEADERS };

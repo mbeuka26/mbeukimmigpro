@@ -73,23 +73,44 @@ export class HubGateClient {
       apikey: this.anonKey,
       Authorization: `Bearer ${this.session?.supabaseAccessToken || this.anonKey}`,
       "Content-Type": "application/json",
+      "x-client-info": "mbeukimmig-hub-gate",
       ...(authenticated ? this.sessionHeaders() : {}),
     };
+    const url = `${this.functionsUrl}/${functionName}`;
     let response;
     try {
-      response = await this.fetchImpl(`${this.functionsUrl}/${functionName}`, {
+      response = await this.fetchImpl(url, {
         method,
+        mode: "cors",
         headers,
         ...(method === "GET" ? {} : { body: JSON.stringify(body) }),
       });
     } catch (error) {
-      const hint = error?.message ? ` (${error.message})` : "";
-      throw new HubGateError(
-        `${NETWORK_ERROR_MESSAGE}${hint}`,
-        "NETWORK_ERROR",
-        0,
-        error,
-      );
+      if (functionName === "hub-auth-register" || functionName === "hub-auth-login") {
+        await new Promise((r) => setTimeout(r, 600));
+        try {
+          response = await this.fetchImpl(url, {
+            method,
+            mode: "cors",
+            headers,
+            ...(method === "GET" ? {} : { body: JSON.stringify(body) }),
+          });
+        } catch (retryErr) {
+          throw new HubGateError(
+            `${NETWORK_ERROR_MESSAGE} (Edge: ${functionName})`,
+            "NETWORK_ERROR",
+            0,
+            retryErr,
+          );
+        }
+      } else {
+        throw new HubGateError(
+          `${NETWORK_ERROR_MESSAGE} (Edge: ${functionName})`,
+          "NETWORK_ERROR",
+          0,
+          error,
+        );
+      }
     }
     const payload = await response.json().catch(() => ({}));
     if (!response.ok) {

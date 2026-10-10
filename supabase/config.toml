@@ -16,3 +16,16 @@ port = 54323
 enabled = true
 site_url = "http://127.0.0.1:5500"
 additional_redirect_urls = ["http://localhost:5500/platform.html"]
+
+# Auth publique : JWT anon / pré-inscription (voir deploy --no-verify-jwt)
+[functions.hub-auth-login]
+verify_jwt = false
+
+[functions.hub-auth-register]
+verify_jwt = false
+
+[functions.hub-auth-forgot-password]
+verify_jwt = false
+
+[functions.hub-ping]
+verify_jwt = false

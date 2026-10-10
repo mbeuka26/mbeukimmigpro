@@ -14,16 +14,38 @@ function feedback(payload) {
     + (payload.type === 'success' ? ' auth-portal__feedback--success' : '');
 }
 
+function accessReasonFromUrl() {
+  try {
+    return new URLSearchParams(globalThis.location.search).get('reason') || '';
+  } catch {
+    return '';
+  }
+}
+
 function showAccessAlert(gate) {
   const box = document.getElementById('accessAlert');
-  if (!box || !gate?.entitlement) return;
-  const label = gate.entitlement.label || '';
-  const expired = label.includes('expir') || gate.entitlement.reason === 'expired';
+  if (!box) return;
+  const urlReason = accessReasonFromUrl();
+  const label = gate?.entitlement?.label || '';
+  const expired = urlReason === 'expired'
+    || label.toLowerCase().includes('expir')
+    || gate?.entitlement?.reason === 'expired';
+
   if (expired) {
     box.hidden = false;
     box.textContent =
-      'Votre essai gratuit ou votre licence a expiré. Renouvelez en activant un nouvel essai (si disponible) ou en achetant une licence.';
-  } else if (gate.awaitingWebhook) {
+      'Votre essai gratuit a expiré. Achetez une licence pour continuer, ou activez un nouvel essai si le Hub le permet.';
+    return;
+  }
+
+  if (urlReason === 'unpaid' || (gate?.status === GateStatus.BLOCKED && gate?.client?.session)) {
+    box.hidden = false;
+    box.textContent =
+      'Ce compte n’est pas lié à une licence active. Choisissez l’essai gratuit (1 jour) ou achetez une licence PRO (paiement confirmé par webhook Hub uniquement).';
+    return;
+  }
+
+  if (gate?.awaitingWebhook) {
     box.hidden = false;
     box.textContent =
       'Paiement en cours de confirmation. L’accès PRO n’est ouvert qu’après validation du webhook Hub (PAYMENT_CONFIRMED).';
@@ -50,8 +72,13 @@ if (configMod?.SUPABASE_URL && configMod?.SUPABASE_ANON_KEY) {
 
   showAccessAlert(gate);
 
+  document.querySelector('[data-mbeuk-trial]')?.addEventListener('click', () => {
+    feedback({ type: 'loading', text: 'Activation de l’essai…' });
+  });
+
   gate.addEventListener('statechange', (event) => {
     const { status } = event.detail || {};
+    showAccessAlert(gate);
     if ([GateStatus.TRIAL, GateStatus.STANDARD].includes(status)) {
       globalThis.location.replace(ROUTES.app);
     }

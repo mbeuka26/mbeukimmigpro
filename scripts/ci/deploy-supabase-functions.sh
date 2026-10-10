@@ -25,14 +25,20 @@ if [[ ! -d "$FUNCS_DIR" ]]; then
   exit 1
 fi
 
+PUBLIC_JWT_FREE="hub-auth-login hub-auth-register hub-auth-forgot-password hub-ping"
+
 DEPLOYED=0
 SKIPPED=0
 for dir in "$FUNCS_DIR"/*; do
   name="$(basename "$dir")"
-  [[ "$name" == "_shared" || "$name" == "README.md" ]] && continue
+  [[ "$name" == "_shared" || "$name" == "README.md" || "$name" == "vendor" ]] && continue
   [[ -f "$dir/index.ts" ]] || continue
   echo "→ Deploy $name"
-  supabase functions deploy "$name" --project-ref "$SUPABASE_PROJECT_REF"
+  if [[ " $PUBLIC_JWT_FREE " == *" $name "* ]]; then
+    supabase functions deploy "$name" --project-ref "$SUPABASE_PROJECT_REF" --no-verify-jwt
+  else
+    supabase functions deploy "$name" --project-ref "$SUPABASE_PROJECT_REF"
+  fi
   DEPLOYED=$((DEPLOYED + 1))
 done
 

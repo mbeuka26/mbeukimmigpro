@@ -103,6 +103,7 @@ export function authFeedback(error) {
   if (code === "INVALID_CREDENTIALS") return "Identifiant invalide. Vérifiez votre mot de passe.";
   if (code === "DEVICE_LIMIT_REACHED") return "Quota d’appareils atteint. Contactez le support.";
   if (code === "INVALID_PROMO") return "Code promo invalide. Vérifiez le code et réessayez.";
+  if (code === "SESSION_SYNC_FAILED") return error?.message || NETWORK_ERROR_MESSAGE;
   return error?.message || NETWORK_ERROR_MESSAGE;
 }
 
@@ -244,9 +245,17 @@ export class MbeukHubGate extends EventTarget {
         return;
       }
       if (!allowed && status === GateStatus.BLOCKED) {
-        globalThis.location.replace(PAGE_ROUTES.chooseAccess);
+        globalThis.location.replace(this.blockedAccessUrl());
       }
     }
+  }
+
+  blockedAccessUrl() {
+    const label = String(this.entitlement?.label || "").toLowerCase();
+    const reason = label.includes("expir") || this.entitlement?.reason === "expired"
+      ? "expired"
+      : "unpaid";
+    return `${PAGE_ROUTES.chooseAccess}?reason=${reason}`;
   }
 
   applyProtection() {
@@ -359,6 +368,14 @@ export class MbeukHubGate extends EventTarget {
           },
         });
         return result;
+      }
+      if (isNetworkError(error)) {
+        throw new HubGateError(
+          "Compte peut-être créé mais la session n'a pas pu être confirmée. Réessayez de vous connecter.",
+          "SESSION_SYNC_FAILED",
+          503,
+          error,
+        );
       }
       throw error;
     }
@@ -538,7 +555,7 @@ export class MbeukHubGate extends EventTarget {
           await this.login(values);
           if (this.status === GateStatus.BLOCKED) {
             if (this.config.pageRouting) {
-              this.maybeRedirectForPageRouting(GateStatus.BLOCKED);
+              globalThis.location.replace(this.blockedAccessUrl());
               return;
             }
             message({ type: "error", text: NO_LICENSE_MESSAGE });
