@@ -21,7 +21,7 @@ fi
 
 if echo "$OUT" | grep -qE 'already exists|duplicate key|SQLSTATE 42P07'; then
   echo "⚠ Schéma partiellement présent — tentative migration repair puis re-push"
-  for rev in 20261009000000 20261009010000 20261009020000 20261009030000; do
+  for rev in 20261009000000 20261009010000 20261009020000 20261009030000 20261009040000; do
     supabase migration repair "$rev" --status applied --linked 2>/dev/null || true
   done
   supabase db push --linked --yes

@@ -202,7 +202,8 @@ if (configMod?.SUPABASE_URL && configMod?.SUPABASE_ANON_KEY) {
     sector: 'education',
     authMode: 'existing',
     pageRouting: true,
-    skipLiveHub: true,
+    skipLiveHub: false,
+    silentHealth: true,
   });
   document.querySelector('[data-mbeuk-logout]')?.addEventListener('click', async () => {
     await gate.logout();
