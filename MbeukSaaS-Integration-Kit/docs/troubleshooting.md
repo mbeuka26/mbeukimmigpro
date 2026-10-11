@@ -10,6 +10,7 @@
 | `TENANT_MISMATCH` | Mauvais Product/App ID | Vérifier secrets Supabase |
 | `INVALID_API_KEY` | Clé `mbs_` révoquée | Régénérer dans Developer Portal /sdk |
 | Compte existe déjà masqué | `recovered_existing` non propagé | central-auth-client signUp |
+| Compte créé dans le Hub mais « Erreur de connexion » sur mobile | Réponse Edge coupée après création Hub | Gate : reprise par `hub-auth-login` (kit ≥ 1.8.01) puis redirection `choose-access` |
 | « Connexion réseau » sur code promo | `hub-validate-promo` non déployé | Déployer la fonction (script kit 1.4.0) |
 
 ## Licence
