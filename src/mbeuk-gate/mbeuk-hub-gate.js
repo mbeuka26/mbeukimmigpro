@@ -593,6 +593,30 @@ export class MbeukHubGate extends EventTarget {
             globalThis.location.replace(PAGE_ROUTES.chooseAccess);
           }
         } catch (error) {
+          if (isNetworkError(error) && values.email && values.password) {
+            try {
+              message({ type: "loading", text: "Finalisation de la création du compte…" });
+              await this.login({ email: values.email, password: values.password });
+              if (this.status === GateStatus.BLOCKED) {
+                if (this.config.pageRouting && isAuthEntryPage()) {
+                  globalThis.location.replace(PAGE_ROUTES.chooseAccess);
+                  return;
+                }
+                if (this.config.pageRouting) {
+                  this.maybeRedirectForPageRouting(GateStatus.BLOCKED);
+                  return;
+                }
+              }
+              message({ type: "success", text: "Compte créé. Redirection…" });
+              if (this.config.pageRouting && isAuthEntryPage()) {
+                globalThis.location.replace(PAGE_ROUTES.chooseAccess);
+              }
+              return;
+            } catch (loginError) {
+              message({ type: "error", text: authFeedback(loginError), error: loginError });
+              return;
+            }
+          }
           message({ type: "error", text: authFeedback(error), error });
         }
       });

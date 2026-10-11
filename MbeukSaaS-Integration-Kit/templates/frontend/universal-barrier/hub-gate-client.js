@@ -68,22 +68,87 @@ export class HubGateClient {
     };
   }
 
+  async fetchEdge(functionName, body, headers, method = "POST") {
+    const url = `${this.functionsUrl}/${functionName}`;
+    return this.fetchImpl(url, {
+      method,
+      mode: "cors",
+      headers,
+      ...(method === "GET" ? {} : { body: JSON.stringify(body) }),
+    });
+  }
+
   async request(functionName, body = {}, { authenticated = true, method = "POST" } = {}) {
     const headers = {
       apikey: this.anonKey,
       Authorization: `Bearer ${this.session?.supabaseAccessToken || this.anonKey}`,
       "Content-Type": "application/json",
+      "x-client-info": "mbeukimmig-hub-gate",
       ...(authenticated ? this.sessionHeaders() : {}),
     };
     let response;
     try {
-      response = await this.fetchImpl(`${this.functionsUrl}/${functionName}`, {
-        method,
-        headers,
-        ...(method === "GET" ? {} : { body: JSON.stringify(body) }),
-      });
+      response = await this.fetchEdge(functionName, body, headers, method);
     } catch (error) {
-      throw new HubGateError(NETWORK_ERROR_MESSAGE, "NETWORK_ERROR", 0, error);
+      if (functionName === "hub-auth-login") {
+        await new Promise((r) => setTimeout(r, 800));
+        try {
+          response = await this.fetchEdge(functionName, body, headers, method);
+        } catch (retryErr) {
+          throw new HubGateError(
+            `${NETWORK_ERROR_MESSAGE} (Edge: ${functionName})`,
+            "NETWORK_ERROR",
+            0,
+            retryErr,
+          );
+        }
+      } else if (functionName === "hub-auth-register") {
+        const email = body.email;
+        const password = body.password;
+        const deviceId = body.device_identifier;
+        if (email && password) {
+          await new Promise((r) => setTimeout(r, 1800));
+          try {
+            response = await this.fetchEdge(
+              "hub-auth-login",
+              { email, password, device_identifier: deviceId },
+              headers,
+              method,
+            );
+          } catch (loginErr) {
+            await new Promise((r) => setTimeout(r, 1200));
+            try {
+              response = await this.fetchEdge(
+                "hub-auth-login",
+                { email, password, device_identifier: deviceId },
+                headers,
+                method,
+              );
+            } catch (loginRetryErr) {
+              throw new HubGateError(
+                `${NETWORK_ERROR_MESSAGE} (Edge: ${functionName})`,
+                "NETWORK_ERROR",
+                0,
+                loginRetryErr,
+              );
+            }
+          }
+        } else {
+          throw new HubGateError(
+            `${NETWORK_ERROR_MESSAGE} (Edge: ${functionName})`,
+            "NETWORK_ERROR",
+            0,
+            error,
+          );
+        }
+      } else {
+        throw new HubGateError(
+          `${NETWORK_ERROR_MESSAGE} (Edge: ${functionName})`,
+          "NETWORK_ERROR",
+          0,
+          error,
+        );
+      }
     }
     const payload = await response.json().catch(() => ({}));
     if (!response.ok) {
