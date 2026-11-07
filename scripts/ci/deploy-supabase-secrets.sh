@@ -61,5 +61,5 @@ if [[ ${#ARGS[@]} -eq 0 ]]; then
 fi
 
 echo "→ supabase secrets set (${#ARGS[@]} clés)"
-supabase secrets set "${ARGS[@]}" --project-ref "$SUPABASE_PROJECT_REF"
+supabase secrets set "${ARGS[@]}" --project-ref "$SUPABASE_PROJECT_REF" --yes
 echo "✅ Secrets Supabase synchronisés"
