@@ -103,6 +103,13 @@ export async function applyHubLicenseToUser(
   const license = normalizeLicenseResult(result);
   const mapped = mapHubToSubscription(license);
 
+  // Conserver la date de début d'essai déjà enregistrée (ne pas la réécrire à chaque sync).
+  if (mapped.trial_started_at) {
+    const { data: existing } = await supabaseAdmin
+      .from('subscriptions').select('trial_started_at').eq('user_id', userId).maybeSingle();
+    if (existing?.trial_started_at) mapped.trial_started_at = existing.trial_started_at;
+  }
+
   const { error: subErr } = await supabaseAdmin.from('subscriptions').upsert({
     user_id: userId,
     plan: mapped.plan,
