@@ -38,6 +38,7 @@ Deno.serve(async (req) => {
 
     return json({
       ok: true,
+      server_time: new Date().toISOString(),
       valid: hubResult.valid,
       reason: hubResult.reason ?? null,
       subscription,

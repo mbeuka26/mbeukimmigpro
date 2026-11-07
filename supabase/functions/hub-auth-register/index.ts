@@ -91,7 +91,6 @@ Deno.serve(async (req) => {
     let hubUserId: string;
     let hubEmail: string;
     let hubLogin;
-    let recoveredExisting = false;
 
     try {
       const hubResult = await hub.auth.register({
@@ -115,15 +114,12 @@ Deno.serve(async (req) => {
       if (!isDuplicateHubAccount(registerErr)) {
         return hubErrorResponse(toSafeHubError(registerErr), 'hub_register_or_login');
       }
-      recoveredExisting = true;
-      hubLogin = await hubLoginWithDeviceFallback(hub, {
-        email: emailNorm,
-        password: passwordStr,
-        product_id: productId,
-        device_identifier,
-      });
-      hubUserId = hubLogin.user_id;
-      hubEmail = hubLogin.email;
+      // §5.1 : un email déjà enregistré ne crée pas de session. La reprise après
+      // coupure réseau est gérée côté client par une connexion explicite.
+      return respond({
+        error: 'Cette adresse email existe déjà. Veuillez utiliser une autre adresse email ou vous connecter à votre compte.',
+        code: 'EMAIL_EXISTS',
+      }, 409);
     }
 
     const profile = await ensureSaasProfile(supabaseAdmin, {
@@ -142,7 +138,7 @@ Deno.serve(async (req) => {
         profile.id,
         hubEmail,
         license,
-        recoveredExisting ? 'hub_login' : 'hub_register',
+        'hub_register',
       );
     } catch (syncErr) {
       console.error('[hub-auth-register] subscription sync failed', syncErr);
@@ -153,7 +149,6 @@ Deno.serve(async (req) => {
 
     return respond({
       ok: true,
-      recovered_existing: recoveredExisting,
       hub_user_id: hubUserId,
       saas_user_id: profile.id,
       email: hubEmail,

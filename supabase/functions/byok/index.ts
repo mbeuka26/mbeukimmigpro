@@ -3,6 +3,7 @@ import { getProvider } from '../../../shared/llm/registry.ts';
 import { corsHeadersFor } from '../_shared/cors.ts';
 import { errorResponse, jsonResponse } from '../_shared/http.ts';
 import { requireUser, serviceClient } from '../_shared/supabase.ts';
+import { requireEntitlement, EntitlementError, ENTITLEMENT_MESSAGE } from '../_shared/entitlement.ts';
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeadersFor(req) });
@@ -10,6 +11,7 @@ Deno.serve(async (req) => {
     const { user } = await requireUser(req);
     const body = await req.json();
     const action = body.action as string;
+    if (action === 'save' || action === 'test' || action === 'set_mode') await requireEntitlement(user.id);
     const master = Deno.env.get('BYOK_MASTER_KEY_BASE64');
     const db = serviceClient();
 
@@ -76,6 +78,9 @@ Deno.serve(async (req) => {
 
     return errorResponse('UNKNOWN_ACTION', 'Action inconnue');
   } catch (e) {
+    if (e instanceof EntitlementError) {
+      return errorResponse('ENTITLEMENT_REQUIRED', ENTITLEMENT_MESSAGE, 403);
+    }
     if (e instanceof Error && e.message === 'UNAUTHORIZED') {
       return errorResponse('UNAUTHORIZED', 'Authentification requise.', 401);
     }

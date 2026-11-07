@@ -1,11 +1,13 @@
 import { corsHeadersFor } from '../_shared/cors.ts';
 import { errorResponse, jsonResponse } from '../_shared/http.ts';
 import { requireUser, serviceClient } from '../_shared/supabase.ts';
+import { requireEntitlement, EntitlementError, ENTITLEMENT_MESSAGE } from '../_shared/entitlement.ts';
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeadersFor(req) });
   try {
-    await requireUser(req);
+    const { user } = await requireUser(req);
+    await requireEntitlement(user.id);
     const { query, countryCode, limit = 8 } = await req.json();
     if (!query || String(query).trim().length < 2) {
       return errorResponse('INVALID_INPUT', 'Requête trop courte.');
@@ -45,6 +47,9 @@ Deno.serve(async (req) => {
       disclaimer: 'Informations indicatives — vérifiez les sources officielles.',
     });
   } catch (e) {
+    if (e instanceof EntitlementError) {
+      return errorResponse('ENTITLEMENT_REQUIRED', ENTITLEMENT_MESSAGE, 403);
+    }
     if (e instanceof Error && e.message === 'UNAUTHORIZED') {
       return errorResponse('UNAUTHORIZED', 'Authentification requise.', 401);
     }

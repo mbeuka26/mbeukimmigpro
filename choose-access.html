@@ -14,19 +14,22 @@
       <p class="auth-portal__eyebrow">MbeukImmig Pro</p>
       <h1>Choisissez votre accès</h1>
       <p class="auth-portal__intro">
-        Votre compte est créé. Activez l’essai d’une journée ou achetez une licence pour débloquer le guide, le CV et l’agent IA.
+        Activez l’essai gratuit ou achetez une licence pour débloquer le guide, le CV et l’agent IA.
       </p>
       <div class="auth-portal__alert" id="accessAlert" hidden></div>
       <div class="auth-portal__options">
         <button type="button" class="auth-portal__option" data-mbeuk-trial>
-          <strong>Essai gratuit — 1 jour</strong>
-          <span>Accès immédiat à toute la plateforme. À l’expiration, reconnectez-vous pour renouveler ou acheter une licence.</span>
+          <strong>Essai gratuit</strong>
+          <span>Tester gratuitement l’application pendant la période autorisée.</span>
         </button>
         <button type="button" class="auth-portal__option" id="btn-go-promo">
           <strong>Acheter une licence</strong>
-          <span>Code ambassadeur (facultatif), puis paiement sécurisé via le Hub Central. L’accès PRO n’est confirmé qu’après webhook de paiement réussi.</span>
+          <span>Acheter une licence pour accéder à la version professionnelle ou standard. Code influenceur facultatif.</span>
         </button>
       </div>
+      <button type="button" class="auth-portal__option" id="btn-continue-trial" hidden>
+        <strong>Continuer avec l’essai gratuit</strong>
+      </button>
       <p class="auth-portal__feedback" id="authMsg" aria-live="polite"></p>
       <button type="button" class="auth-portal__link" data-mbeuk-logout style="margin-top:1.5rem">Se déconnecter</button>
     </div>

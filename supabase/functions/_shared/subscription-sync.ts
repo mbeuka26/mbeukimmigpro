@@ -30,7 +30,8 @@ function inferPlan(result: LicenseVerifyResult): string {
   const accessType = result.license?.access_type ?? result.status ?? '';
   if (accessType === 'trial') return 'trial';
   if (!result.valid && !result.license?.id) return 'none';
-  return 'Professional';
+  // Libellé de plan fourni par le Hub ; jamais inventé côté SaaS.
+  return String((result.license as Record<string, unknown> | undefined)?.plan ?? result.license?.access_type ?? result.status ?? 'licensed');
 }
 
 function inferStatus(result: LicenseVerifyResult): string {

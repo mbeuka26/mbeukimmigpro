@@ -93,7 +93,8 @@ Deno.serve(async (req) => {
       fingerprint_hash: device_identifier,
       user_id: userId,
       started_at: now.toISOString(),
-      expires_at: expiresAt ?? new Date(now.getTime() + 3 * 86400000).toISOString(),
+      // Pas de durée codée en dur : sans date Hub, l'essai est considéré comme déjà consommé.
+      expires_at: expiresAt ?? now.toISOString(),
     });
 
     await supabaseAdmin.from('devices').upsert({
