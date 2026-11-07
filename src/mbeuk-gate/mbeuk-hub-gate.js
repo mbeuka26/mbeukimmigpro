@@ -49,6 +49,15 @@ function isAccessFlowPage() {
   return p === "choose-access.html" || p === "promo.html";
 }
 
+export function isTrialNoticePage() {
+  try {
+    return currentPageName() === "choose-access.html"
+      && new URLSearchParams(globalThis.location?.search || "").get("reason") === "trial";
+  } catch {
+    return false;
+  }
+}
+
 function isAppPage() {
   return currentPageName() === "platform.html";
 }
@@ -62,47 +71,99 @@ export const GateStatus = Object.freeze({
   ERROR: "error",
 });
 
+export const DEFAULT_EXPIRY_WARNING_DAYS = 7;
+
+function planLabel(plan) {
+  if (/pro/.test(plan)) return "VERSION PRO — LICENCE ACTIVE";
+  if (/standard/.test(plan)) return "VERSION STANDARD — LICENCE ACTIVE";
+  return "LICENCE ACTIVE";
+}
+
+/**
+ * Normalise la réponse hub-license-status. Le temps de référence est
+ * `payload.server_time` (horloge serveur) ; l'horloge locale n'est qu'un repli.
+ */
 export function normalizeEntitlement(payload, now = new Date()) {
   const subscription = payload?.subscription || payload?.license || {};
   const rawStatus = String(subscription.status || payload?.status || "").toLowerCase();
   const plan = String(subscription.plan || payload?.plan || "").toLowerCase();
+  const accessType = String(subscription.hub_access_type || "").toLowerCase();
   const valid = payload?.valid === true;
-  const trialEnd = subscription.trial_ends_at || payload?.trial_ends_at || null;
-  const expiration = trialEnd || subscription.expires_at || payload?.expiration_date || null;
-  const endDate = expiration ? new Date(expiration) : null;
-  const daysRemaining = endDate && !Number.isNaN(endDate.getTime())
-    ? Math.max(0, Math.ceil((endDate.getTime() - now.getTime()) / 86400000))
-    : null;
+  const serverTime = payload?.server_time ? new Date(payload.server_time) : null;
+  const ref = serverTime && !Number.isNaN(serverTime.getTime()) ? serverTime : now;
   const isTrial = rawStatus === "trial" || plan === "trial";
+  const trialEnd = subscription.trial_ends_at || payload?.trial_ends_at || null;
+  const expiration = isTrial
+    ? (trialEnd || subscription.expires_at || payload?.expiration_date || null)
+    : (subscription.expires_at || payload?.expiration_date || trialEnd || null);
+  const endDate = expiration ? new Date(expiration) : null;
+  const hasEnd = Boolean(endDate && !Number.isNaN(endDate.getTime()));
+  const daysRemaining = hasEnd
+    ? Math.max(0, Math.ceil((endDate.getTime() - ref.getTime()) / 86400000))
+    : null;
+  const pastEnd = hasEnd && endDate.getTime() <= ref.getTime();
   const unpaid = /unpaid|none|pending|cancel|fail|abandon|expired|blocked/.test(rawStatus)
     || /unpaid|cancel|fail|abandon/.test(String(payload?.payment_status || "").toLowerCase());
 
-  if (valid && isTrial) {
-    return { status: GateStatus.TRIAL, label: "Essai gratuit", daysRemaining, expiration };
+  if (valid && !pastEnd && isTrial) {
+    return { status: GateStatus.TRIAL, label: "VERSION GRATUITE — ESSAI", daysRemaining, expiration, kind: "trial" };
   }
-  if (valid && !isTrial && !unpaid) {
-    return { status: GateStatus.STANDARD, label: "Standard", daysRemaining: null, expiration };
+  if (valid && !pastEnd && !isTrial && !unpaid) {
+    const warnDays = Number(payload?.expiry_warning_days) > 0
+      ? Number(payload.expiry_warning_days)
+      : DEFAULT_EXPIRY_WARNING_DAYS;
+    return {
+      status: GateStatus.STANDARD,
+      label: planLabel(plan || accessType),
+      daysRemaining,
+      expiration,
+      kind: "license",
+      expiringSoon: daysRemaining != null && daysRemaining <= warnDays,
+    };
   }
+  const expired = rawStatus === "expired" || pastEnd;
+  const wasTrial = isTrial || accessType === "trial";
+  const kind = expired ? (wasTrial ? "trial_expired" : "license_expired") : "none";
   return {
     status: GateStatus.BLOCKED,
-    label: rawStatus === "expired" ? "Accès expiré" : "Accès requis",
+    label: kind === "trial_expired" ? "ESSAI EXPIRÉ" : kind === "license_expired" ? "LICENCE EXPIRÉE" : "AUCUN ACCÈS ACTIF",
     daysRemaining,
     expiration,
-    reason: unpaid ? (payload?.reason || "UNPAID") : (payload?.reason || rawStatus || "NO_ENTITLEMENT"),
+    kind,
+    reason: expired ? "expired" : (unpaid ? (payload?.reason || "UNPAID") : (payload?.reason || rawStatus || "NO_ENTITLEMENT")),
   };
+}
+
+function plural(n, word) {
+  return `${n} ${word}${n > 1 ? "s" : ""}`;
+}
+
+/** Messages §7/§11/§13 à partir de données serveur. */
+export function expiryNotice(entitlement) {
+  if (!entitlement || entitlement.daysRemaining == null) return "";
+  const days = plural(entitlement.daysRemaining, "jour");
+  if (entitlement.kind === "trial") return `Il vous reste ${days} d'essai gratuit.`;
+  if (entitlement.kind === "license" && entitlement.expiringSoon) {
+    return `Votre licence arrive bientôt à expiration. Il vous reste ${days} avant l'expiration de votre licence.`;
+  }
+  return "";
 }
 
 export function authFeedback(error) {
   if (isNetworkError(error)) return NETWORK_ERROR_MESSAGE;
   const code = error?.code || "";
   if (code === "INVALID_EMAIL") {
-    return "Email invalide. Saisissez correctement votre email puis reconnectez-vous.";
+    return "Votre adresse email semble incorrecte. Veuillez vérifier et ressaisir votre email.";
   }
-  if (code === "ACCOUNT_NOT_FOUND") return "Vérifiez votre email et mot de passe.";
-  if (code === "WRONG_PASSWORD") return "Vérifiez votre mot de passe.";
-  if (code === "INVALID_CREDENTIALS") return "Identifiant invalide. Vérifiez votre mot de passe.";
+  if (code === "EMAIL_EXISTS") {
+    return "Cette adresse email existe déjà. Veuillez utiliser une autre adresse email ou vous connecter à votre compte.";
+  }
+  // Ne révèle pas si l'email existe (§10.2).
+  if (["ACCOUNT_NOT_FOUND", "WRONG_PASSWORD", "INVALID_CREDENTIALS"].includes(code)) {
+    return "Email ou mot de passe incorrect. Veuillez vérifier vos informations et réessayer.";
+  }
   if (code === "DEVICE_LIMIT_REACHED") return "Quota d’appareils atteint. Contactez le support.";
-  if (code === "INVALID_PROMO") return "Code promo invalide. Vérifiez le code et réessayez.";
+  if (code === "INVALID_PROMO") return "Code invalide. Veuillez vérifier le code de votre influenceur.";
   if (code === "SESSION_SYNC_FAILED") return error?.message || NETWORK_ERROR_MESSAGE;
   return error?.message || NETWORK_ERROR_MESSAGE;
 }
@@ -233,6 +294,8 @@ export class MbeukHubGate extends EventTarget {
         globalThis.location.replace(PAGE_ROUTES.auth);
         return;
       }
+      // Situation A : page d'information essai actif (Acheter / Continuer l'essai).
+      if (allowed && isTrialNoticePage()) return;
       if (allowed) {
         globalThis.location.replace(PAGE_ROUTES.app);
       }
@@ -251,10 +314,10 @@ export class MbeukHubGate extends EventTarget {
   }
 
   blockedAccessUrl() {
-    const label = String(this.entitlement?.label || "").toLowerCase();
-    const reason = label.includes("expir") || this.entitlement?.reason === "expired"
-      ? "expired"
-      : "unpaid";
+    const kind = this.entitlement?.kind;
+    const reason = kind === "trial_expired" ? "trial_expired"
+      : kind === "license_expired" ? "license_expired"
+        : "unpaid";
     return `${PAGE_ROUTES.chooseAccess}?reason=${reason}`;
   }
 
@@ -330,7 +393,7 @@ export class MbeukHubGate extends EventTarget {
     const { email, password } = credentialsFromForm(raw);
     if (!isValidEmail(email)) {
       throw new HubGateError(
-        "Email invalide. Saisissez correctement votre email puis reconnectez-vous.",
+        "Votre adresse email semble incorrecte. Veuillez vérifier et ressaisir votre email.",
         "INVALID_EMAIL",
         400,
       );
@@ -347,7 +410,7 @@ export class MbeukHubGate extends EventTarget {
     }
     if (!isValidEmail(email)) {
       throw new HubGateError(
-        "Email invalide. Saisissez correctement votre email puis reconnectez-vous.",
+        "Votre adresse email semble incorrecte. Veuillez vérifier et ressaisir votre email.",
         "INVALID_EMAIL",
         400,
       );
@@ -386,7 +449,7 @@ export class MbeukHubGate extends EventTarget {
     const email = typeof raw === "string" ? raw : credentialsFromForm(raw).email;
     if (!isValidEmail(email)) {
       throw new HubGateError(
-        "Email invalide. Saisissez correctement votre email puis reconnectez-vous.",
+        "Votre adresse email semble incorrecte. Veuillez vérifier et ressaisir votre email.",
         "INVALID_EMAIL",
         400,
       );
@@ -410,7 +473,7 @@ export class MbeukHubGate extends EventTarget {
 
   async validatePromo(code) {
     const normalized = String(code || "").trim();
-    if (!normalized) return { valid: false, message: "Code promo invalide. Vérifiez le code et réessayez." };
+    if (!normalized) return { valid: false, message: "Code invalide. Veuillez vérifier le code de votre influenceur." };
     const result = await this.client.validatePromo(normalized);
     if (result.valid) sessionStorage.setItem(PROMO_KEY, normalized);
     else sessionStorage.removeItem(PROMO_KEY);
@@ -436,8 +499,8 @@ export class MbeukHubGate extends EventTarget {
         message({
           type: result.valid ? "success" : "error",
           text: result.valid
-            ? `Réussi — vous effectuez vos paiements avec le code de « ${result.influencer_name || "votre influenceur"} ».`
-            : (result.message || "Code promo invalide. Vérifiez le code et réessayez."),
+            ? `Vous effectuez votre achat avec le code de ${result.influencer_name || "votre influenceur"}.`
+            : (result.message || "Code invalide. Veuillez vérifier le code de votre influenceur."),
           result,
         });
       }, 450);
@@ -450,7 +513,7 @@ export class MbeukHubGate extends EventTarget {
       const validation = await this.validatePromo(promo);
       if (!validation.valid) {
         throw new HubGateError(
-          validation.message || "Code promo invalide. Vérifiez le code et réessayez.",
+          validation.message || "Code invalide. Veuillez vérifier le code de votre influenceur.",
           "INVALID_PROMO",
           400,
           validation,
@@ -563,6 +626,9 @@ export class MbeukHubGate extends EventTarget {
             return;
           }
           message({ type: "success", text: "Connexion réussie." });
+          if (this.config.pageRouting && isAuthEntryPage() && this.status === GateStatus.TRIAL) {
+            globalThis.location.replace(`${PAGE_ROUTES.chooseAccess}?reason=trial`);
+          }
         } catch (error) {
           message({ type: "error", text: authFeedback(error), error });
         }
@@ -669,14 +735,20 @@ export class MbeukHubGate extends EventTarget {
     const name = this.profile?.full_name || this.profile?.email || "";
     if (name) target.append(node("span", { className: "mbeuk-gate__user" }, name));
     if (this.entitlement?.label) {
-      const suffix = this.entitlement.daysRemaining != null
-        ? ` · ${this.entitlement.daysRemaining} j`
-        : "";
+      const showDays = this.entitlement.daysRemaining != null
+        && (this.entitlement.kind === "trial" || this.entitlement.expiringSoon);
+      const suffix = showDays ? ` · ${this.entitlement.daysRemaining} j` : "";
       target.append(node(
         "span",
         { className: `mbeuk-gate__badge mbeuk-gate__badge--${this.entitlement.status}` },
         `${this.entitlement.label}${suffix}`,
       ));
+    }
+    const notice = expiryNotice(this.entitlement);
+    if (notice) {
+      const buy = node("button", { type: "button", className: "mbeuk-gate__notice-cta" }, "Renouveler / Acheter une licence");
+      buy.addEventListener("click", () => globalThis.location.assign(PAGE_ROUTES.promo));
+      target.append(node("span", { className: "mbeuk-gate__notice", role: "status" }, notice), buy);
     }
   }
 

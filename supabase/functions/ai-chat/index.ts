@@ -3,6 +3,7 @@ import { getProvider } from '../../../shared/llm/registry.ts';
 import { corsHeadersFor } from '../_shared/cors.ts';
 import { errorResponse, jsonResponse } from '../_shared/http.ts';
 import { requireUser, serviceClient } from '../_shared/supabase.ts';
+import { requireEntitlement, EntitlementError, ENTITLEMENT_MESSAGE } from '../_shared/entitlement.ts';
 
 function centralKey(providerId: string): string | undefined {
   const map: Record<string, string> = {
@@ -21,6 +22,7 @@ Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeadersFor(req) });
   try {
     const { user } = await requireUser(req);
+    await requireEntitlement(user.id);
     const { messages, providerId, modelId, allowCentralFallback } = await req.json();
     const db = serviceClient();
 
@@ -92,6 +94,9 @@ Deno.serve(async (req) => {
       usage: { tokensIn: result.tokensIn, tokensOut: result.tokensOut },
     });
   } catch (e) {
+    if (e instanceof EntitlementError) {
+      return errorResponse('ENTITLEMENT_REQUIRED', ENTITLEMENT_MESSAGE, 403);
+    }
     if (e instanceof Error && e.message === 'UNAUTHORIZED') {
       return errorResponse('UNAUTHORIZED', 'Authentification requise.', 401);
     }

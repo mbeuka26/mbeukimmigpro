@@ -102,6 +102,12 @@ async function bootHub() {
       delete loginForm.dataset.submitting;
       if (status === GateStatus.BLOCKED && gate.client.session) {
         globalThis.location.replace(ROUTES.chooseAccess);
+        return;
+      }
+      // Situation A : nouvelle connexion en essai -> page d'information (jours restants).
+      if (status === GateStatus.TRIAL) {
+        globalThis.location.replace(`${ROUTES.chooseAccess}?reason=trial`);
+        return;
       }
     }
     if ([GateStatus.TRIAL, GateStatus.STANDARD].includes(status)) {

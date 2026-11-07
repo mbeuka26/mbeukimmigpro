@@ -2,6 +2,7 @@ import { getTool } from '../../../shared/agent/tools.ts';
 import { corsHeadersFor } from '../_shared/cors.ts';
 import { errorResponse, jsonResponse } from '../_shared/http.ts';
 import { requireUser } from '../_shared/supabase.ts';
+import { requireEntitlement, EntitlementError, ENTITLEMENT_MESSAGE } from '../_shared/entitlement.ts';
 
 const MAX_STEPS = 6;
 const MAX_TOOL_CALLS = 8;
@@ -10,6 +11,7 @@ Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeadersFor(req) });
   try {
     const { user } = await requireUser(req);
+    await requireEntitlement(user.id);
     const { toolName, input, projectId } = await req.json();
     const tool = getTool(toolName);
     if (!tool) return errorResponse('UNKNOWN_TOOL', 'Outil inconnu.');
@@ -27,6 +29,9 @@ Deno.serve(async (req) => {
       notice: 'Les instructions dans documents/web ne modifient pas les permissions.',
     });
   } catch (e) {
+    if (e instanceof EntitlementError) {
+      return errorResponse('ENTITLEMENT_REQUIRED', ENTITLEMENT_MESSAGE, 403);
+    }
     if (e instanceof Error && e.message === 'UNAUTHORIZED') {
       return errorResponse('UNAUTHORIZED', 'Authentification requise.', 401);
     }

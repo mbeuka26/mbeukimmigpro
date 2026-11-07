@@ -30,7 +30,8 @@ function inferPlan(result: LicenseVerifyResult): string {
   const accessType = result.license?.access_type ?? result.status ?? '';
   if (accessType === 'trial') return 'trial';
   if (!result.valid && !result.license?.id) return 'none';
-  return 'Professional';
+  // Libellé de plan fourni par le Hub ; jamais inventé côté SaaS.
+  return String((result.license as Record<string, unknown> | undefined)?.plan ?? result.license?.access_type ?? result.status ?? 'licensed');
 }
 
 function inferStatus(result: LicenseVerifyResult): string {
@@ -101,6 +102,13 @@ export async function applyHubLicenseToUser(
 ): Promise<SubscriptionCache> {
   const license = normalizeLicenseResult(result);
   const mapped = mapHubToSubscription(license);
+
+  // Conserver la date de début d'essai déjà enregistrée (ne pas la réécrire à chaque sync).
+  if (mapped.trial_started_at) {
+    const { data: existing } = await supabaseAdmin
+      .from('subscriptions').select('trial_started_at').eq('user_id', userId).maybeSingle();
+    if (existing?.trial_started_at) mapped.trial_started_at = existing.trial_started_at;
+  }
 
   const { error: subErr } = await supabaseAdmin.from('subscriptions').upsert({
     user_id: userId,

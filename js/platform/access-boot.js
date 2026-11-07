@@ -26,29 +26,52 @@ function showAccessAlert(gate) {
   const box = document.getElementById('accessAlert');
   if (!box) return;
   const urlReason = accessReasonFromUrl();
-  const label = gate?.entitlement?.label || '';
-  const expired = urlReason === 'expired'
-    || label.toLowerCase().includes('expir')
-    || gate?.entitlement?.reason === 'expired';
+  const ent = gate?.entitlement;
+  const kind = ent?.kind
+    || (urlReason === 'trial_expired' || urlReason === 'license_expired' ? urlReason : '');
+  const trialBtn = document.querySelector('[data-mbeuk-trial]');
+  const continueBtn = document.getElementById('btn-continue-trial');
 
-  if (expired) {
+  // Situation A — essai actif : information + Acheter / Continuer.
+  if (gate?.status === GateStatus.TRIAL && urlReason === 'trial') {
+    const n = ent?.daysRemaining ?? 0;
     box.hidden = false;
-    box.textContent =
-      'Votre essai gratuit a expiré. Achetez une licence pour continuer, ou activez un nouvel essai si le Hub le permet.';
+    box.textContent = `Vous utilisez actuellement la version gratuite. Il vous reste ${n} jour${n > 1 ? 's' : ''} d’essai gratuit. Achetez une licence pour profiter de la version professionnelle.`;
+    if (trialBtn) trialBtn.hidden = true;
+    if (continueBtn) {
+      continueBtn.hidden = false;
+      continueBtn.onclick = () => globalThis.location.replace(ROUTES.app);
+    }
     return;
   }
+  if (continueBtn) continueBtn.hidden = true;
 
+  // Situation B — essai expiré : un seul bouton principal.
+  if (kind === 'trial_expired') {
+    box.hidden = false;
+    box.textContent = 'Votre période d’essai gratuit a expiré. Pour continuer à utiliser cette application, veuillez acheter une licence.';
+    if (trialBtn) trialBtn.hidden = true;
+    return;
+  }
+  // Licence expirée.
+  if (kind === 'license_expired') {
+    box.hidden = false;
+    box.textContent = 'Votre licence a expiré. Pour continuer à utiliser cette application, veuillez renouveler ou acheter une nouvelle licence.';
+    if (trialBtn) trialBtn.hidden = true;
+    return;
+  }
+  // Situation C — aucun droit actif (l’éligibilité à l’essai est vérifiée par le Hub au clic).
   if (urlReason === 'unpaid' || (gate?.status === GateStatus.BLOCKED && gate?.client?.session)) {
     box.hidden = false;
-    box.textContent =
-      'Ce compte n’est pas lié à une licence active. Choisissez l’essai gratuit (1 jour) ou achetez une licence PRO (paiement confirmé par webhook Hub uniquement).';
+    box.textContent = 'Ce compte ne possède actuellement aucune licence active. Vous devez acheter une licence ou commencer votre période d’essai gratuit si vous êtes encore éligible.';
+    if (gate?.awaitingWebhook) {
+      box.textContent = 'Nous vérifions votre paiement. Veuillez patienter ou revenir ultérieurement.';
+    }
     return;
   }
-
   if (gate?.awaitingWebhook) {
     box.hidden = false;
-    box.textContent =
-      'Paiement en cours de confirmation. L’accès PRO n’est ouvert qu’après validation du webhook Hub (PAYMENT_CONFIRMED).';
+    box.textContent = 'Nous vérifions votre paiement. Veuillez patienter ou revenir ultérieurement.';
   }
 }
 
@@ -79,7 +102,8 @@ if (configMod?.SUPABASE_URL && configMod?.SUPABASE_ANON_KEY) {
   gate.addEventListener('statechange', (event) => {
     const { status } = event.detail || {};
     showAccessAlert(gate);
-    if ([GateStatus.TRIAL, GateStatus.STANDARD].includes(status)) {
+    const onTrialNotice = accessReasonFromUrl() === 'trial';
+    if ([GateStatus.TRIAL, GateStatus.STANDARD].includes(status) && !(onTrialNotice && status === GateStatus.TRIAL)) {
       globalThis.location.replace(ROUTES.app);
     }
   });
