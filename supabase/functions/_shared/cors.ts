@@ -4,6 +4,11 @@ const BASE_HEADERS = {
   'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
 };
 
+const OWN_ORIGINS = [
+  'https://immig.mbeuk.co',
+  'https://mbeukimmigpro-mbeuka26s-projects.vercel.app',
+];
+
 function normalizeOrigin(value: string): string {
   return value.trim().replace(/\/+$/, '').toLowerCase();
 }
@@ -11,7 +16,8 @@ function normalizeOrigin(value: string): string {
 function parseAllowedOrigins(): string[] {
   const raw = Deno.env.get('APP_URL')?.trim();
   if (!raw) return [];
-  return raw.split(',').map((s) => normalizeOrigin(s)).filter(Boolean);
+  // Origines de production de cette application, toujours autorisées même si APP_URL est périmé.
+  return [...raw.split(','), ...OWN_ORIGINS].map((s) => normalizeOrigin(s)).filter(Boolean);
 }
 
 function isLocalOrigin(origin: string): boolean {
