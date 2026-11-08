@@ -35,9 +35,9 @@ for dir in "$FUNCS_DIR"/*; do
   [[ -f "$dir/index.ts" ]] || continue
   echo "→ Deploy $name"
   if [[ " $PUBLIC_JWT_FREE " == *" $name "* ]]; then
-    supabase functions deploy "$name" --project-ref "$SUPABASE_PROJECT_REF" --no-verify-jwt
+    supabase functions deploy "$name" --project-ref "$SUPABASE_PROJECT_REF" --no-verify-jwt --yes
   else
-    supabase functions deploy "$name" --project-ref "$SUPABASE_PROJECT_REF"
+    supabase functions deploy "$name" --project-ref "$SUPABASE_PROJECT_REF" --yes
   fi
   DEPLOYED=$((DEPLOYED + 1))
 done
