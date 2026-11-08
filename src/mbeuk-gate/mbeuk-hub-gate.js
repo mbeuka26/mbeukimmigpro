@@ -150,7 +150,9 @@ export function expiryNotice(entitlement) {
 }
 
 export function authFeedback(error) {
-  if (isNetworkError(error)) return NETWORK_ERROR_MESSAGE;
+  if (isNetworkError(error)) {
+    return error?.diagnostic ? `${NETWORK_ERROR_MESSAGE} [${error.diagnostic}]` : NETWORK_ERROR_MESSAGE;
+  }
   const code = error?.code || "";
   if (code === "INVALID_EMAIL") {
     return "Votre adresse email semble incorrecte. Veuillez vérifier et ressaisir votre email.";

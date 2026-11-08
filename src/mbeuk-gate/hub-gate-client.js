@@ -68,6 +68,41 @@ export class HubGateClient {
     };
   }
 
+  /**
+   * Erreur réseau avec diagnostic : sépare « hors ligne », « serveur injoignable »
+   * et « serveur joignable mais réponse bloquée (CORS / erreur sans en-têtes) ».
+   */
+  async networkError(functionName, cause) {
+    let diagnostic = "INCONNU";
+    try {
+      if (globalThis.navigator && globalThis.navigator.onLine === false) {
+        diagnostic = "HORS-LIGNE";
+      } else {
+        try {
+          await this.fetchImpl(`${this.functionsUrl}/hub-ping`, { method: "GET", mode: "no-cors" });
+          diagnostic = "SERVEUR-JOIGNABLE-REPONSE-BLOQUEE";
+        } catch {
+          diagnostic = "SERVEUR-INJOIGNABLE";
+        }
+      }
+    } catch {
+      // Diagnostic best-effort.
+    }
+    const error = new HubGateError(
+      `${NETWORK_ERROR_MESSAGE} (Edge: ${functionName}, ${diagnostic})`,
+      "NETWORK_ERROR",
+      0,
+      cause,
+    );
+    error.diagnostic = `${functionName}: ${diagnostic}`;
+    try {
+      console.error("[MbeukHubGate] erreur réseau", error.diagnostic, cause);
+    } catch {
+      // Console indisponible.
+    }
+    return error;
+  }
+
   async fetchEdge(functionName, body, headers, method = "POST") {
     const url = `${this.functionsUrl}/${functionName}`;
     return this.fetchImpl(url, {
@@ -95,12 +130,7 @@ export class HubGateClient {
         try {
           response = await this.fetchEdge(functionName, body, headers, method);
         } catch (retryErr) {
-          throw new HubGateError(
-            `${NETWORK_ERROR_MESSAGE} (Edge: ${functionName})`,
-            "NETWORK_ERROR",
-            0,
-            retryErr,
-          );
+          throw await this.networkError(functionName, retryErr);
         }
       } else if (functionName === "hub-auth-register") {
         // Ne pas relancer register tout de suite : le Hub peut avoir créé le compte
@@ -127,29 +157,14 @@ export class HubGateClient {
                 method,
               );
             } catch (loginRetryErr) {
-              throw new HubGateError(
-                `${NETWORK_ERROR_MESSAGE} (Edge: ${functionName})`,
-                "NETWORK_ERROR",
-                0,
-                loginRetryErr,
-              );
+              throw await this.networkError(functionName, loginRetryErr);
             }
           }
         } else {
-          throw new HubGateError(
-            `${NETWORK_ERROR_MESSAGE} (Edge: ${functionName})`,
-            "NETWORK_ERROR",
-            0,
-            error,
-          );
+          throw await this.networkError(functionName, error);
         }
       } else {
-        throw new HubGateError(
-          `${NETWORK_ERROR_MESSAGE} (Edge: ${functionName})`,
-          "NETWORK_ERROR",
-          0,
-          error,
-        );
+        throw await this.networkError(functionName, error);
       }
     }
     const payload = await response.json().catch(() => ({}));

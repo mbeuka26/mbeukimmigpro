@@ -78,6 +78,7 @@ jobs:
       # Variables OU Secrets (les deux emplacements GitHub sont acceptés)
       SUPABASE_PROJECT_REF: ${{ vars.SUPABASE_PROJECT_REF || secrets.SUPABASE_PROJECT_REF }}
       MBEUK_ENVIRONMENT: ${{ vars.MBEUK_ENVIRONMENT || secrets.MBEUK_ENVIRONMENT }}
+      APP_URL: ${{ vars.APP_URL || secrets.APP_URL }}
       MBEUK_HUB_URL: ${{ vars.MBEUK_HUB_URL || secrets.MBEUK_HUB_URL }}
       MBEUK_HUB_API_KEY: ${{ secrets.MBEUK_HUB_API_KEY }}
       MBEUK_PRODUCT_ID: ${{ vars.MBEUK_PRODUCT_ID || secrets.MBEUK_PRODUCT_ID }}
