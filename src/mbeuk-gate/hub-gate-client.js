@@ -13,12 +13,14 @@ export class HubGateError extends Error {
 }
 
 export class HubGateClient {
-  constructor({ functionsUrl, anonKey, fetchImpl = globalThis.fetch, storage = globalThis.localStorage }) {
+  // `fetch` doit être appelé sans `this` d'instance : l'assigner à une propriété puis
+    // l'appeler (this.fetchImpl(...)) lève « Illegal invocation » dans les navigateurs.
+  constructor({ functionsUrl, anonKey, fetchImpl, storage = globalThis.localStorage }) {
     if (!functionsUrl) throw new Error("MbeukHubGate: functionsUrl requis.");
     if (!anonKey) throw new Error("MbeukHubGate: anonKey requis.");
     this.functionsUrl = functionsUrl.replace(/\/+$/, "");
     this.anonKey = anonKey;
-    this.fetchImpl = fetchImpl;
+    this.fetchImpl = fetchImpl || ((...args) => globalThis.fetch(...args));
     this.storage = storage;
     this.session = this.readSession();
   }
