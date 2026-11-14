@@ -681,7 +681,9 @@ export class MbeukHubGate extends EventTarget {
               }
               return;
             } catch (loginError) {
-              message({ type: "error", text: authFeedback(loginError), error: loginError });
+              // Réseau toujours coupé : afficher l'erreur de l'inscription, pas celle de la reprise.
+              const shown = isNetworkError(loginError) ? error : loginError;
+              message({ type: "error", text: authFeedback(shown), error: shown });
               return;
             }
           }
