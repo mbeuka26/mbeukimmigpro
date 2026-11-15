@@ -46,6 +46,15 @@ function showAccessAlert(gate) {
   }
   if (continueBtn) continueBtn.hidden = true;
 
+  // Paiement interrompu / refusé : aucune licence attribuée, le compte reste utilisable.
+  let paymentFailed = false;
+  try { paymentFailed = sessionStorage.getItem('mbeuk_payment_failed') === '1'; sessionStorage.removeItem('mbeuk_payment_failed'); } catch { /* ignoré */ }
+  if (paymentFailed && ent?.status !== GateStatus.TRIAL && ent?.status !== GateStatus.STANDARD) {
+    box.hidden = false;
+    box.textContent = 'Votre paiement n’a pas abouti. Aucune licence n’a été activée : vous pouvez réessayer quand vous le souhaitez.';
+    return;
+  }
+
   // Situation B — essai expiré : un seul bouton principal.
   if (kind === 'trial_expired') {
     box.hidden = false;
@@ -55,6 +64,8 @@ function showAccessAlert(gate) {
   }
   // Licence expirée.
   if (kind === 'license_expired') {
+    const buy = document.querySelector('#btn-go-promo strong');
+    if (buy) buy.textContent = 'Acheter / Renouveler ma licence';
     box.hidden = false;
     box.textContent = 'Votre licence a expiré. Pour continuer à utiliser cette application, veuillez renouveler ou acheter une nouvelle licence.';
     if (trialBtn) trialBtn.hidden = true;

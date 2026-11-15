@@ -154,6 +154,7 @@ export function authFeedback(error) {
     return error?.diagnostic ? `${NETWORK_ERROR_MESSAGE} [${error.diagnostic}]` : NETWORK_ERROR_MESSAGE;
   }
   const code = error?.code || "";
+  if (["INVALID_PHONE", "WEAK_PASSWORD", "NAME_REQUIRED"].includes(code)) return error.message;
   if (code === "INVALID_EMAIL") {
     return "Votre adresse email semble incorrecte. Veuillez vérifier et ressaisir votre email.";
   }
@@ -188,6 +189,29 @@ export function credentialsFromForm(values) {
     full_name: pickField(values, ["full_name", "fullname", "name", "nom", "nom_complet"]),
     phone: pickField(values, ["phone", "telephone", "tel", "whatsapp"]),
   };
+}
+
+export function isValidPhone(value) {
+  const v = String(value || "").trim();
+  if (!v) return false;
+  const digits = v.replace(/\D/g, "");
+  return /^\+?[\d\s().-]+$/.test(v) && digits.length >= 8 && digits.length <= 15;
+}
+
+export const PASSWORD_MIN_LENGTH = 8;
+
+/** Soumission unique : un double clic ne relance pas la requête en cours. */
+export function guardedSubmit(form, handler) {
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    if (form.dataset.busy === "1") return;
+    form.dataset.busy = "1";
+    try {
+      await handler(event);
+    } finally {
+      delete form.dataset.busy;
+    }
+  });
 }
 
 function isValidEmail(value) {
@@ -352,6 +376,7 @@ export class MbeukHubGate extends EventTarget {
       await this.refresh();
       if (this.isPaymentAbort()) {
         this.clearPaymentQuery();
+        try { sessionStorage.setItem("mbeuk_payment_failed", "1"); } catch { /* stockage indisponible */ }
         this.setState(GateStatus.BLOCKED, {
           entitlement: {
             status: GateStatus.BLOCKED,
@@ -414,6 +439,20 @@ export class MbeukHubGate extends EventTarget {
       throw new HubGateError(
         "Votre adresse email semble incorrecte. Veuillez vérifier et ressaisir votre email.",
         "INVALID_EMAIL",
+        400,
+      );
+    }
+    if (!isValidPhone(phone)) {
+      throw new HubGateError(
+        "Votre numéro de téléphone semble incorrect. Utilisez le format international, par exemple +237 6XX XX XX XX.",
+        "INVALID_PHONE",
+        400,
+      );
+    }
+    if (String(password || "").length < PASSWORD_MIN_LENGTH) {
+      throw new HubGateError(
+        `Le mot de passe doit contenir au moins ${PASSWORD_MIN_LENGTH} caractères.`,
+        "WEAK_PASSWORD",
         400,
       );
     }
@@ -612,7 +651,7 @@ export class MbeukHubGate extends EventTarget {
   } = {}) {
     const message = typeof feedback === "function" ? feedback : () => {};
     if (loginForm) {
-      loginForm.addEventListener("submit", async (event) => {
+      guardedSubmit(loginForm, async (event) => {
         event.preventDefault();
         const values = Object.fromEntries(new FormData(loginForm));
         try {
@@ -637,7 +676,7 @@ export class MbeukHubGate extends EventTarget {
       });
     }
     if (registerForm) {
-      registerForm.addEventListener("submit", async (event) => {
+      guardedSubmit(registerForm, async (event) => {
         event.preventDefault();
         const values = Object.fromEntries(new FormData(registerForm));
         try {
@@ -737,7 +776,10 @@ export class MbeukHubGate extends EventTarget {
     if (!target) return;
     target.replaceChildren();
     const name = this.profile?.full_name || this.profile?.email || "";
-    if (name) target.append(node("span", { className: "mbeuk-gate__user" }, name));
+    if (name) {
+      const first = String(this.profile?.full_name || "").trim().split(/\s+/)[0] || name;
+      target.append(node("span", { className: "mbeuk-gate__user" }, `Bienvenue, ${first}`));
+    }
     if (this.entitlement?.label) {
       const showDays = this.entitlement.daysRemaining != null
         && (this.entitlement.kind === "trial" || this.entitlement.expiringSoon);
