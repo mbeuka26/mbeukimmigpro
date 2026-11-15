@@ -58,3 +58,13 @@ describe('messages utilisateur', () => {
     expect(authFeedback({ code: 'INVALID_PROMO' })).toBe('Code invalide. Veuillez vérifier le code de votre influenceur.');
   });
 });
+
+import { isValidPhone, PASSWORD_MIN_LENGTH } from '../src/mbeuk-gate/mbeuk-hub-gate.js';
+
+describe('validation inscription (§5)', () => {
+  it('téléphone : format international accepté, valeurs absurdes refusées', () => {
+    for (const ok of ['+237 677 12 34 56', '+33612345678', '(237) 677-123-456']) expect(isValidPhone(ok)).toBe(true);
+    for (const bad of ['', 'abc', '123', '+1234567890123456789', '12 34 xx 56 78']) expect(isValidPhone(bad)).toBe(false);
+  });
+  it('mot de passe : longueur minimale 8', () => expect(PASSWORD_MIN_LENGTH).toBe(8));
+});
